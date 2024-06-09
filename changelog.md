@@ -1,3 +1,7 @@
+# 1.2.5
+
+- Added `format` argument for `stdout` functions.
+
 # 1.2.4
 
 - Added `@echo` command.

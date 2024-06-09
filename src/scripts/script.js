@@ -1,13 +1,22 @@
 /* constant values */
 
 const stdout = {
-    log: function (text) {
+    log: function (text, format = true) {
+        if (!format) {
+            stdOut.innerHTML += text + "<br>"
+        }
         stdOut.innerHTML += ansi_up.ansi_to_html(text+"\n").replaceAll("\n", "<br>")
     },
-    error: function (text) {
-        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text+"\n").replaceAll("\n", "<br>")
+    error: function (text, format = true) {
+        if (!format) {
+            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": ").replaceAll("\n", "<br>") + text + "<br>"
+        }
+        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text + "\n").replaceAll("\n", "<br>")
     },
-    write: function (text) {
+    write: function (text, format = true) {
+        if (!format) {
+            stdOut.innerHTML += text
+        }
         stdOut.innerHTML += ansi_up.ansi_to_html(text).replaceAll("\n", "<br>")
     },
     clear: function () {
@@ -599,7 +608,7 @@ stdIn.addEventListener("keydown", async (event) => {
 
         }
 
-    } 
+    }
 
     else if (event.key == "ArrowDown") {
 
