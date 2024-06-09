@@ -1,0 +1,74 @@
+html,
+body {
+    color: var(--html-text);
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+body {
+    background: var(--html-background);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#main {
+    width: var(--main-width);
+    height: var(--main-height);
+    max-width: var(--main-width);
+    max-height: var(--main-height);
+    font-family: var(--main-font-family);
+    font-size: var(--main-font-size);
+    white-space: nowrap;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+}
+
+::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+#form {
+    width: 100%;
+    display: flex;
+}
+
+#std-in {
+    display: inline-block;
+    width: auto;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    resize: none;
+    outline: none;
+    cursor: default;
+    flex-grow: 1;
+}
+
+#std-out {
+    word-break: break-all;
+    text-wrap: wrap !important;
+    margin: 0;
+    cursor: default;
+    white-space: pre;
+}
+
+::selection {
+    background-color: var(--html-selection);
+    color: var(--html-selection-text);
+}

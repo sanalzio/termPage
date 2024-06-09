@@ -1,0 +1,13 @@
+{
+  "name": "termpage",
+  "version": "1.2.4",
+  "description": "My custom like terminal home page.",
+  "main": "./src/",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx serve ./src"
+  },
+  "keywords": [],
+  "author": "sanalzio",
+  "license": "ISC"
+}

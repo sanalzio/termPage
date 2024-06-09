@@ -1,0 +1,26 @@
+:root{
+    --html-background: url("../assets/bg.jpg");
+    --html-text: #e0e0e0;
+    --html-selection: #e0e0e0;
+    --html-selection-text: #212121;
+
+    --main-width: 80%;
+    --main-height: 80%;
+    --main-font-family: "Fira Code", consolas, monospace;
+    --main-font-size: medium;
+}
+
+body{
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+#main{
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}

@@ -1,0 +1,56 @@
+{
+    "name": "termPage",
+    "version": "1.2.4",
+    "author": "Sanalzio",
+    "description": "My custom like terminal home page.",
+    
+    "manifest_version": 3,
+
+    "chrome_url_overrides": {
+        "newtab": "index.html"
+    },
+
+    "page_settings": {
+
+        "title": "New Tab",
+
+        "user": "sanalzio",
+
+        "host": null,
+
+        "search-engine-url": "https://duckduckgo.com/?q=$1",
+
+        "location": "Ankara",
+
+        "language": "en",
+
+        "allowLoadScript": false
+    },
+
+    "bookmarks": {
+        "github" : "https://github.com",
+        "discord" : "https://discord.com",
+        "youtube" : "https://youtube.com",
+        "instagram" : "https://instagram.com",
+        "linkedin" : "https://linkedin.com",
+        "whatsapp" : "https://web.whatsapp.com",
+        "gmail" : "https://mail.google.com",
+        "btt" : "https://btt.community"
+    },
+
+    "aliases": {
+        "cls": "clear",
+        "h": "help",
+        "?": "help",
+        "s": "search",
+        "weather": "wttr.in",
+        "wttr": "wttr.in",
+        "calculator": "calc",
+        "math": "calc",
+        "lzar": "calc",
+        "open": "openurl",
+        "ip": "ipinfo",
+        "ipconfig": "ipinfo",
+        "@ECHO": "@echo"
+    }
+}

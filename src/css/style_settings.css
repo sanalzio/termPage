@@ -1,0 +1,59 @@
+:root{
+
+    box-sizing: border-box;
+
+    color-scheme: dark;
+
+
+    /* default theme */
+
+    --html-background: #212121;
+    --html-text: #e0e0e0;
+    --html-selection: #e0e0e0;
+    --html-selection-text: #212121;
+
+    --main-width: 80%;
+    --main-height: 80%;
+    --main-font-family: "Fira Code", consolas, monospace;
+    --main-font-size: medium;
+
+    /* default theme */
+
+
+    --ansi-black-fg: #212121;  /* matches background color */
+    --ansi-red-fg: #ff7979;   /* pastel red */
+    --ansi-green-fg: #79ff79;  /* pastel green */
+    --ansi-yellow-fg: #ffff79; /* pastel yellow */
+    --ansi-blue-fg: #87b6d8;   /* pastel blue */
+    --ansi-magenta-fg: #ff808c; /* pastel magenta */
+    --ansi-cyan-fg: #79ffff;  /* pastel cyan (same as regular cyan for consistency) */
+    --ansi-white-fg: #e0e0e0;  /* pastel white */
+  
+    --ansi-bright-black-fg: #333333;  /* slightly darker than background */
+    --ansi-bright-red-fg: #ffb3b3;   /* light pastel red */
+    --ansi-bright-green-fg: #b3ffb3;  /* light pastel green */
+    --ansi-bright-yellow-fg: #ffffb3; /* light pastel yellow */
+    --ansi-bright-blue-fg: #b3dfff;   /* light pastel blue */
+    --ansi-bright-magenta-fg: #ffc0cb; /* light pastel magenta */
+    --ansi-bright-cyan-fg: #b3ffff;  /* light pastel cyan */
+    --ansi-bright-white-fg: #f0f0f0;  /* lighter pastel white */
+  
+    --ansi-black-bg: #212121;  /* set background color as defined */
+    --ansi-red-bg: #ffdddd;      /* pastel red background */
+    --ansi-green-bg: #bbffbb;      /* pastel green background */
+    --ansi-yellow-bg: #ffffdd;     /* pastel yellow background */
+    --ansi-blue-bg: #ddddff;      /* pastel blue background */
+    --ansi-magenta-bg: #ffddff;     /* pastel magenta background */
+    --ansi-cyan-bg: #bbffff;      /* pastel cyan background */
+    --ansi-white-bg: #f0f0f0;     /* pastel white background */
+  
+    --ansi-bright-black-bg: #444444;  /* slightly darker than background */
+    --ansi-bright-red-bg: #ffcccc;      /* lighter pastel red background */
+    --ansi-bright-green-bg: #bbffcc;     /* lighter pastel green background */
+    --ansi-bright-yellow-bg: #ffffcc;    /* lighter pastel yellow background */
+    --ansi-bright-blue-bg: #ccccff;     /* lighter pastel blue background */
+    --ansi-bright-magenta-bg: #ffddee;    /* lighter pastel magenta background */
+    --ansi-bright-cyan-bg: #bbffff;     /* lighter pastel cyan background (same as regular cyan for consistency) */
+    --ansi-bright-white-bg: #ffffff;    /* white background */
+
+}
