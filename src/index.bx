@@ -1,0 +1,37 @@
+!DOCTYPE[html]
+html{
+head{
+    meta[charset="UTF-8"]%
+    meta[name="viewport" content="width=device-width, initial-scale=1.0"]%
+    title{New Tab}
+    link[rel="stylesheet" href="./css/ansi-escape.css"]%
+    link[rel="stylesheet" href="./css/style.css"]%
+    link[rel="stylesheet" href="./css/style_settings.css"]%
+    link[rel="stylesheet" href="./css/theme1.css"]%
+}
+body{
+    div#main{
+        p#std-out{}
+        div#form{
+            label#prefix[for="std-in"]{span#usr-host.ansi-bright-green-fg{span#user{user}@span#host{host}}:span#cd.ansi-blue-fg{~}&#36;&nbsp;}
+            input#std-in[autocomplete="off" spellcheck="false" type="text" name="std-in"]%
+        }
+    }
+    script[src="./scripts/ansi_up.js"]{}
+    script[src="./scripts/lzar.js"]{}
+    script[src="./scripts/colorama.js"]{}
+    script[src="./scripts/tdk.js"]{}
+    script[src="./scripts/script.js"]{}
+}
+}
+
+```
+what is the .bx file?
+
+.bx file is my own binx named documentation formating styles file.
+
+it's only works with binx
+
+you can download binx named open source xml like formatting style from:
+https://github.com/sanalzio/binx/releases/latest
+```
