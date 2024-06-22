@@ -4,6 +4,7 @@ const stdout = {
     log: function (text, format = true) {
         if (!format) {
             stdOut.innerHTML += text + "<br>"
+            return;
         }
         stdOut.innerHTML += ansi_up.ansi_to_html(text+"\n").replaceAll("\n", "<br>")
     },
@@ -76,11 +77,23 @@ const math = new lzar();
 
 let aliases, bookmarks, settings, manifest, aboutContent;
 
+let times, time24s, timeInterval;
+
 let IPv4, IPv6, ip_location, ISP;
 
 let ipInfoText;
 
 /* constant values */
+
+
+/* Function for effective time */
+
+function effectiveTime() {
+    times = document.getElementsByClassName("time");
+    time24s = document.getElementsByClassName("time24");
+}
+
+/* Function for effective time */
 
 
 /* Function for parse arguments */
@@ -202,7 +215,7 @@ const commands = {
     },
     "echo": {
         func: async function (process) {
-            stdout.log(process._);
+            stdout.log(process._, false);
             return 0;
         },
         about: "Echo command."
@@ -232,14 +245,34 @@ const commands = {
     },
     "time": {
         func: async function (process) {
-            if (process.options["24h"]) {
-                stdout.log(new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }));
-            } else {
-                stdout.log(new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+            if (process.options["kill"]) {
+                clearInterval(timeInterval);
+                return 0;
             }
+            if (process.options["set"]) {
+                timeInterval = setInterval(() => {
+                    for (let i = 0; i < times.length; i++) {
+                        const element = times[i];
+                        element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                    }
+                    for (let i = 0; i < time24s.length; i++) {
+                        const element = time24s[i];
+                        element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                    }
+                }, 1000);
+                return 0;
+            }
+            if (process.options["24h"]) {
+                const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                stdout.log("<span class=\"time24\">" + time + "</span>", false);
+            } else {
+                const time = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                stdout.log("<span class=\"time\">" + time + "</span>", false);
+            }
+            effectiveTime();
             return 0;
         },
-        about: "Print system time. Examples:\n $ time\n $ time --24h"
+        about: "Print system time.\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h"
     },
     "about": {
         func: async function (process) {
@@ -509,9 +542,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     const manifestRes = await fetch("./manifest.json");
     manifest = await manifestRes.json();
 
-    settings = manifest.page_settings;
+    settings = manifest.terminal_settings;
     aliases = manifest.aliases;
     bookmarks = manifest.bookmarks;
+
+    if (settings.effectiveTime) {
+        timeInterval = setInterval(() => {
+            for (let i = 0; i < times.length; i++) {
+                const element = times[i];
+                element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            }
+            for (let i = 0; i < time24s.length; i++) {
+                const element = time24s[i];
+                element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            }
+        }, 1000);
+    }
 
     const wtfismyipRES = await fetch("https://wtfismyip.com/json");
     const wtfismyipSJON = await wtfismyipRES.json();
@@ -541,9 +587,14 @@ document.addEventListener('DOMContentLoaded', async function() {
  ${Fore.BrightBlue}ISP${Fore.Reset}      : ${Fore.Blue}${ISP}${Fore.Reset}
  ${Fore.BrightBlue}Location${Fore.Reset} : ${Fore.Blue}${ip_location}${Fore.Reset}
 `;
+    if (settings.allowLoadScript) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
+        if (!(loadScript === "")) await executeScript(loadScript);
+    });
 
     form.style.display = "flex";
     mainDiv.scrollTop = mainDiv.scrollHeight;
+
+    mainDiv.style.display = "inline-block";
 
     if (
         document.activeElement === document.body &&
@@ -552,9 +603,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     ) {
         stdIn.focus();
     }
-    if (settings.allowLoadScript) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
-        if (!(loadScript === "")) await executeScript(loadScript);
-    });
 });
 
 /* on load */

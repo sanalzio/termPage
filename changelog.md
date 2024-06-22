@@ -1,3 +1,10 @@
+# 1.2.6
+
+- Renamed `./src/scripts/script.js` file to `./src/scripts/index.js`.
+- Added effective time option to manifes.json.
+- Added added `--set` and `--kill` flags to `time` command.
+- Added better information for `time` command.
+
 # 1.2.5
 
 - Added `format` argument for `stdout` functions.

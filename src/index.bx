@@ -21,7 +21,7 @@ body{
     script[src="./scripts/lzar.js"]{}
     script[src="./scripts/colorama.js"]{}
     script[src="./scripts/tdk.js"]{}
-    script[src="./scripts/script.js"]{}
+    script[src="./scripts/index.js"]{}
 }
 }
 

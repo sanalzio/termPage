@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.2.5",
+    "version": "1.2.6",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -10,7 +10,7 @@
         "newtab": "index.html"
     },
 
-    "page_settings": {
+    "terminal_settings": {
 
         "title": "New Tab",
 
@@ -24,7 +24,9 @@
 
         "language": "en",
 
-        "allowLoadScript": false
+        "allowLoadScript": false,
+
+        "effectiveTime": true
     },
 
     "bookmarks": {
