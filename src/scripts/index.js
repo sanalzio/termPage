@@ -75,7 +75,7 @@ ansi_up.use_classes = true;
 
 const math = new lzar();
 
-let aliases, bookmarks, settings, manifest, aboutContent;
+let bookmarks, settings, manifest, aboutContent;
 
 let times, time24s, timeInterval;
 
@@ -83,7 +83,46 @@ let IPv4, IPv6, ip_location, ISP;
 
 let ipInfoText;
 
+let aliases = {
+    "cls": "clear",
+    "h": "help",
+    "?": "help",
+    "s": "search",
+    "weather": "wttr.in",
+    "wttr": "wttr.in",
+    "cht_sh": "cht.sh",
+    "calculator": "calc",
+    "math": "calc",
+    "lzar": "calc",
+    "open": "openurl",
+    "ip": "ipinfo",
+    "ipconfig": "ipinfo",
+    "@ECHO": "@echo"
+}
+
 /* constant values */
+
+
+/* Function for get command aliases */
+
+function getAliases(command) {
+
+    let commandAliases = " Aliases: ";
+
+    for (const [key, value] of Object.entries(aliases)) {
+        if (value === command) {
+            commandAliases += key + ", ";
+        }
+    }
+
+    if (commandAliases == " Aliases: ") {
+        return "";
+    }
+
+    return commandAliases.slice(0, -2);
+}
+
+/* Function for get command aliases */
 
 
 /* Function for effective time */
@@ -200,7 +239,7 @@ const commands = {
             stdout.log("\n\n\x1b[1;33;40m 33;40  \x1b[1;33;41m 33;41  \x1b[1;33;42m 33;42  \x1b[1;33;43m 33;43  \x1b[1;33;44m 33;44  \x1b[1;33;45m 33;45  \x1b[1;33;46m 33;46  \x1b[1m\x1b[0m\n\n\x1b[1;33;42m >> Tests OK\x1b[0m\n\n");
             return 0;
         },
-        about: "Test command."
+        about: `Test command.%ALIASES%`
     },
     "@echo": {
         func: async function (process) {
@@ -211,21 +250,21 @@ const commands = {
             }
             return 0;
         },
-        about: "Switch echo on/off. Example:\n $ @echo on\n $ @echo off"
+        about: `Switch echo on/off.%ALIASES%\nExample:\n $ @echo on\n $ @echo off`
     },
     "echo": {
         func: async function (process) {
             stdout.log(process._, false);
             return 0;
         },
-        about: "Echo command."
+        about: `Echo command.%ALIASES%`
     },
     "clear": {
         func: async function (process) {
             stdout.clear();
             return 0;
         },
-        about: "Clear console."
+        about: `Clear console.%ALIASES%`
     },
     "bash": {
         func: async function (process) {
@@ -234,14 +273,14 @@ const commands = {
             });
             return 0;
         },
-        about: "Run script. Example:\n $ bash ./file.sh\n $ bash https://example.com/script.sh"
+        about: `Run script.%ALIASES%\nExample:\n $ bash ./file.sh\n $ bash https://example.com/script.sh`
     },
     "ipinfo": {
         func: async function (process) {
             stdout.log(ipInfoText);
             return 0;
         },
-        about: "Print system ip information. Example:\n $ ipinfo"
+        about: `Print system ip information.%ALIASES%\nExample:\n $ ipinfo`
     },
     "time": {
         func: async function (process) {
@@ -251,14 +290,16 @@ const commands = {
             }
             if (process.options["set"]) {
                 timeInterval = setInterval(() => {
-                    for (let i = 0; i < times.length; i++) {
-                        const element = times[i];
-                        element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-                    }
-                    for (let i = 0; i < time24s.length; i++) {
-                        const element = time24s[i];
-                        element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-                    }
+                    if (times)
+                        for (let i = 0; i < times.length; i++) {
+                            const element = times[i];
+                            element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                        }
+                    if (time24s)
+                        for (let i = 0; i < time24s.length; i++) {
+                            const element = time24s[i];
+                            element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                        }
                 }, 1000);
                 return 0;
             }
@@ -272,14 +313,14 @@ const commands = {
             effectiveTime();
             return 0;
         },
-        about: "Print system time.\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h"
+        about: `Print system time.%ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h`
     },
     "about": {
         func: async function (process) {
             stdout.log(aboutContent);
             return 0;
         },
-        about: "Print information."
+        about: `Print information.%ALIASES%`
     },
     "date": {
         func: async function (process) {
@@ -290,7 +331,7 @@ const commands = {
             }
             return 0;
         },
-        about: "Print system date. Examples:\n $ date\n $ date --long"
+        about: `Print system date.%ALIASES%\nExamples:\n $ date\n $ date --long`
     },
     "bookmarks": {
         func: async function (process) {
@@ -304,14 +345,14 @@ const commands = {
             })());
             return 0;
         },
-        about: "Print all bookmarks. Examples:\n $ bookmarks"
+        about: `Print all bookmarks.%ALIASES%\nExamples:\n $ bookmarks`
     },
     "calc": {
         func: async function (process) {
             stdout.log(math.calc(process._));
             return 0;
         },
-        about: "Calculator. Aliases: math, calculator, lzar\nExamples:\n $ calc 2+2\n $ math 2+2"
+        about: `Calculator.%ALIASES%\nExamples:\n $ calc 2+2\n $ math 2+2`
     },
     "tdk": {
         func: async function (process) {
@@ -321,7 +362,7 @@ const commands = {
             stdout.log(tdk(data));
             return 0;
         },
-        about: "TDK dictionary api. Examples:\n $ tdk merhaba"
+        about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
     },
     "go": {
         func: async function (process) {
@@ -340,14 +381,15 @@ const commands = {
             }
             return 0;
         },
-        about: "Go bookmark.\nFlags: -b: open in new tab\nExamples:\n $ go github\n $ go -b github",
+        about: `Go bookmark.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ go github\n $ go -b github"`
     },
     "openurl": {
         func: async function (process) {
+            if (process.options.s) window.open(process._, "_self");
             window.open(process._, "_blank");
             return 0;
         },
-        about: "Open url. Examples:\n $ openurl https://example.com"
+        about: `Open url.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ openurl https://example.com`
     },
     "wttr.in": {
         func: async function (process) {
@@ -374,8 +416,35 @@ const commands = {
             stdout.log(data);
             return 0;
         },
-        about: "Show weather. Aliases: weather, wttr\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en"
+        about: `Show weather.%ALIASES%\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en`
     },
+    /* 
+     * This command not working because request blocking by CORS policy.
+
+    "cht.sh": {
+        func: async function (process) {
+            let additionalOptions = "";
+            if (process.options.c) additionalOptions += "Q";
+            if (!process._ || process._ == "") {
+                stdout.error("Please enter a search term.");
+                return 1;
+            } else {
+                const res = await fetch(
+                    "https://cht.sh/" +
+                    encodeURI(process._) +
+                    "?qT" +
+                    additionalOptions
+                );
+                const data = await res.text();
+                const doc = new DOMParser().parseFromString(data, 'text/html');
+                const preElement = doc.querySelector("pre");
+                const content = preElement.textContent;
+                stdout.log(content);
+            }
+            return 0;
+        },
+        about: `Get cheat sheet.%ALIASES%\nFlags:\n -c: code only, don't show text\nExamples:\n $ cht.sh -c python/hello world\n $ cht.sh btrfs`
+    }, */
     "search": {
         func: async function (process) {
             if (!process._ || process._ == "") {
@@ -389,16 +458,28 @@ const commands = {
             }
             return 0;
         },
-        about: "Search in the web. Flags: -b: open in new tab\nAliases: s\nExamples:\n $ search sanalzio\n $ s -b sanalzio"
+        about: `Search in the web.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ search sanalzio\n $ s -b sanalzio`
     },
     "help": {
         func: async function (process) {
             for (const command in commands) {
-                stdout.log(Fore.BrightBlue + command + Fore.Reset + ": " + Fore.Blue + commands[command].about + Fore.Reset + "\n");
+                stdout.log(
+                    Fore.BrightBlue +
+                    command +
+                    Fore.Reset +
+                    ": " +
+                    Fore.Blue +
+                    commands[command].about.replace(
+                        "%ALIASES%",
+                        getAliases(command)
+                    ) +
+                    Fore.Reset +
+                    "\n"
+                );
             }
             return 0;
         },
-        about: "Show help. Aliases: h, ?"
+        about: `Show help.%ALIASES%`
     },
 }
 
@@ -543,19 +624,21 @@ document.addEventListener('DOMContentLoaded', async function() {
     manifest = await manifestRes.json();
 
     settings = manifest.terminal_settings;
-    aliases = manifest.aliases;
+    aliases = {...manifest.aliases, ...aliases};
     bookmarks = manifest.bookmarks;
 
     if (settings.effectiveTime) {
         timeInterval = setInterval(() => {
-            for (let i = 0; i < times.length; i++) {
-                const element = times[i];
-                element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            }
-            for (let i = 0; i < time24s.length; i++) {
-                const element = time24s[i];
-                element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
-            }
+            if (times)
+                for (let i = 0; i < times.length; i++) {
+                    const element = times[i];
+                    element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                }
+            if (time24s)
+                for (let i = 0; i < time24s.length; i++) {
+                    const element = time24s[i];
+                    element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                }
         }, 1000);
     }
 

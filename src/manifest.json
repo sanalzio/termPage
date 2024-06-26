@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.2.6",
+    "version": "1.2.7",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -40,19 +40,5 @@
         "btt" : "https://btt.community"
     },
 
-    "aliases": {
-        "cls": "clear",
-        "h": "help",
-        "?": "help",
-        "s": "search",
-        "weather": "wttr.in",
-        "wttr": "wttr.in",
-        "calculator": "calc",
-        "math": "calc",
-        "lzar": "calc",
-        "open": "openurl",
-        "ip": "ipinfo",
-        "ipconfig": "ipinfo",
-        "@ECHO": "@echo"
-    }
+    "aliases": {}
 }

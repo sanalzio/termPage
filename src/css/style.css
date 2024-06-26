@@ -51,6 +51,7 @@ body {
     display: inline-block;
     width: auto;
     border: none;
+    padding: 0 !important;
     background-color: transparent;
     color: inherit;
     font-family: inherit;

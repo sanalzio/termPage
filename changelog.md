@@ -1,3 +1,7 @@
+# 1.2.7
+
+- Writed better help algortym.
+
 # 1.2.6
 
 - Renamed `./src/scripts/script.js` file to `./src/scripts/index.js`.
