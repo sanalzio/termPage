@@ -1,3 +1,7 @@
+# 1.2.8
+
+- Fixed `open` commands `-s` flag.
+
 # 1.2.7
 
 - Writed better help algortym.

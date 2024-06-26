@@ -385,7 +385,10 @@ const commands = {
     },
     "openurl": {
         func: async function (process) {
-            if (process.options.s) window.open(process._, "_self");
+            if (process.options.s) {
+                window.open(process._, "_self");
+                return 0;
+            }
             window.open(process._, "_blank");
             return 0;
         },
