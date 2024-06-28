@@ -1,3 +1,9 @@
+# 1.3.0
+
+- Upgraded `echo`, `calc`, `tdk` and `help` commands.
+- Added `cat`, `reload`, `close` and `sh` commands.
+- Added std input algortym.
+
 # 1.2.8
 
 - Fixed `open` commands `-s` flag.

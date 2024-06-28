@@ -23,26 +23,15 @@ const stdout = {
     clear: function () {
         stdOut.innerHTML = "";
     },
-    startProcess: function () {
+    startProcess: function (thisPrefix = prefix.innerHTML) {
 
-        if (stdOut.innerHTML.toLowerCase().endsWith("<br>") || stdOut.innerHTML.toLowerCase().endsWith("<br/>") || stdOut.innerHTML == "") {
-    
-            stdOut.innerHTML += prefix.innerHTML +
-                stdIn.value +
-                "<br>";
-    
-        } else {
-    
-            stdOut.innerHTML += "<br>" +
-                prefix.innerHTML +
-                stdIn.value +
-                "<br>";
-    
-        }
-        
+        stdOut.innerHTML += thisPrefix +
+            stdIn.value +
+            "<br>";
+
         if(stdIn.value != "") history.push(stdIn.value);
         currentHistoryElement = history.length;
-        
+
         form.style.display = "none";
 
     },
@@ -70,10 +59,14 @@ const stdOut = document.getElementById("std-out");
 
 let pref = prefix.innerHTML;
 
+let rawPrefix;
+
 const ansi_up = new AnsiUp;
 ansi_up.use_classes = true;
 
 const math = new lzar();
+
+const defaultStdInHeight = window.getComputedStyle(stdIn).height;
 
 let bookmarks, settings, manifest, aboutContent;
 
@@ -83,11 +76,15 @@ let IPv4, IPv6, ip_location, ISP;
 
 let ipInfoText;
 
+let thisProcess, thisProcessPrefix;
+
 let aliases = {
     "cls": "clear",
     "h": "help",
     "?": "help",
     "s": "search",
+    "reboot": "reload",
+    "shutdown": "close",
     "weather": "wttr.in",
     "wttr": "wttr.in",
     "cht_sh": "cht.sh",
@@ -175,7 +172,9 @@ function parseInput(input) {
         }
     }
 
-    return { argv, options, _ };
+    const command = argv.shift();
+
+    return { command, argv, options, _ };
 }
 
 /* Function for parse arguments */
@@ -252,12 +251,54 @@ const commands = {
         },
         about: `Switch echo on/off.%ALIASES%\nExample:\n $ @echo on\n $ @echo off`
     },
+    "cat": {
+        func: async function (process, isInput = false) {
+            if(isInput) {
+                stdout.log(process._, true);
+                return "";
+            }
+            if (process._ == "") {
+                return "";
+            }
+            const res = await fetch(process._);
+            const err = res.status !== 200?res.status:null;
+            if (err) {
+                stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
+                return 1;
+            }
+            const data = await res.text();
+            stdout.log(data, true);
+            return 0;
+        },
+        about: `Read file content.%ALIASES%\nExamples:\n $ cat ./file.txt\n $ cat https://example.com/file.txt`
+    },
     "echo": {
-        func: async function (process) {
+        func: async function (process, isInput = false) {
+            if (process._ == "") {
+                return "";
+            }
+
             stdout.log(process._, false);
+
+            if(isInput) return "";
+
             return 0;
         },
         about: `Echo command.%ALIASES%`
+    },
+    "reload": {
+        func: async function (process) {
+            window.location.reload(false);
+            return 0;
+        },
+        about: `Reload page.%ALIASES%`
+    },
+    "close": {
+        func: async function (process) {
+            window.close();
+            return 0;
+        },
+        about: `Close page.%ALIASES%`
     },
     "clear": {
         func: async function (process) {
@@ -274,6 +315,35 @@ const commands = {
             return 0;
         },
         about: `Run script.%ALIASES%\nExample:\n $ bash ./file.sh\n $ bash https://example.com/script.sh`
+    },
+    "sh": {
+        func: async function (process, isInput = false) {
+            if(isInput) {
+                const inputProcess = parseInput(process._);
+                if (commands[inputProcess.command]) {
+                    const result = await commands[inputProcess.command].func(inputProcess);
+                    if (result !== 0)
+                        stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                }
+        
+                else if (inputProcess.command in aliases) {
+                    const result = await commands[aliases[inputProcess.command]].func(inputProcess);
+                    if (result !== 0)
+                        stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                }
+                
+                else {
+                    stdout.error("Command not found.");
+                }
+                return rawPrefix;
+            }
+            if (process._ == "") {
+                return rawPrefix;
+            }
+            
+            return 0;
+        },
+        about: `Execute input.%ALIASES%`
     },
     "ipinfo": {
         func: async function (process) {
@@ -348,18 +418,32 @@ const commands = {
         about: `Print all bookmarks.%ALIASES%\nExamples:\n $ bookmarks`
     },
     "calc": {
-        func: async function (process) {
+        func: async function (process, isInput = false) {
+            if (process._ == "") {
+                return "";
+            }
+
             stdout.log(math.calc(process._));
+
+            if(isInput) return "";
+
             return 0;
         },
         about: `Calculator.%ALIASES%\nExamples:\n $ calc 2+2\n $ math 2+2`
     },
     "tdk": {
-        func: async function (process) {
+        func: async function (process, isInput = false) {
+            if (process._ == "") {
+                return "";
+            }
+
             const url = "https://sozluk.gov.tr/gts?ara=" + encodeURI(process._);
             const res = await fetch(url);
             const data = await res.json();
             stdout.log(tdk(data));
+
+            if(isInput) return "";
+
             return 0;
         },
         about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
@@ -421,8 +505,7 @@ const commands = {
         },
         about: `Show weather.%ALIASES%\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en`
     },
-    /* 
-     * This command not working because request blocking by CORS policy.
+    /* This command not working because request blocking by CORS policy.
 
     "cht.sh": {
         func: async function (process) {
@@ -465,6 +548,23 @@ const commands = {
     },
     "help": {
         func: async function (process) {
+            if (process._) {
+                stdout.log(
+                    Fore.BrightBlue +
+                    process._ +
+                    Fore.Reset +
+                    ": " +
+                    Fore.Blue +
+                    commands[process._].about.replace(
+                        "%ALIASES%",
+                        getAliases(process._)
+                    ) +
+                    Fore.Reset
+                );
+                return 0;
+            }
+
+
             for (const command in commands) {
                 stdout.log(
                     Fore.BrightBlue +
@@ -480,9 +580,11 @@ const commands = {
                     "\n"
                 );
             }
+
+
             return 0;
         },
-        about: `Show help.%ALIASES%`
+        about: `Show help.%ALIASES%\nExamples:\n $ help\n $ help cat`
     },
 }
 
@@ -494,24 +596,10 @@ const commands = {
 async function execute(command) {
 
     let exitCode = 0;
-    
 
-    if (stdOut.innerHTML.toLowerCase().endsWith("<br>") || stdOut.innerHTML.toLowerCase().endsWith("<br/>") || stdOut.innerHTML == "") {
-
-        stdOut.innerHTML += prefix.innerHTML +
-            " " +
-            command +
-            "<br>";
-
-    } else {
-
-        stdOut.innerHTML += "<br>" +
-            prefix.innerHTML +
-            " " +
-            command +
-            "<br>";
-
-    }
+    stdOut.innerHTML += prefix.innerHTML +
+        command +
+        "<br>";
     
     form.style.display = "none";
 
@@ -521,15 +609,15 @@ async function execute(command) {
 
     const process = parseInput(command);
         
-    if (commands[process.argv[0]]) {
-        exitCode = await commands[process.argv[0]].func(process);
+    if (commands[process.command]) {
+        exitCode = await commands[process.command].func(process);
         if (exitCode !== 0) {
             stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
         }
     }
 
-    else if (process.argv[0] in aliases) {
-        exitCode = await commands[aliases[process.argv[0]]].func(process);
+    else if (process.command in aliases) {
+        exitCode = await commands[aliases[process.command]].func(process);
         if (exitCode !== 0) {
             stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
         }
@@ -558,15 +646,15 @@ async function executeScript(scriptContent) {
 
         const process = parseInput(command);
             
-        if (commands[process.argv[0]]) {
-            exitCode = await commands[process.argv[0]].func(process);
+        if (commands[process.command]) {
+            exitCode = await commands[process.command].func(process);
             if (exitCode !== 0) {
                 stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
             }
         }
 
-        else if (process.argv[0] in aliases) {
-            exitCode = await commands[aliases[process.argv[0]]].func(process);
+        else if (process.command in aliases) {
+            exitCode = await commands[aliases[process.command]].func(process);
             if (exitCode !== 0) {
                 stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
             }
@@ -657,6 +745,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     IPv4 = httpbinJSON.origin;
 
+    rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;"
+
     nameChange();
 
     aboutContent = `
@@ -698,8 +788,17 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 stdIn.addEventListener("keydown", async (event) => {
 
-    if (event.key == "Enter") {
-        
+    if (!event.shiftKey && event.key == "Enter") {
+
+        event.preventDefault();
+
+        if(thisProcess !== undefined) {
+            stdout.startProcess(thisProcessPrefix);
+            await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
+            stdout.exitProcess();
+            return;
+        };
+
         stdout.startProcess();
 
         if(stdIn.value === "" || stdIn.value.startsWith("#")) {
@@ -708,24 +807,38 @@ stdIn.addEventListener("keydown", async (event) => {
         };
 
         const process = parseInput(stdIn.value);
+
+        thisProcess = process.command;
         
-        if (commands[process.argv[0]]) {
-            const result = await commands[process.argv[0]].func(process);
-            if (result !== 0) {
-                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+        if (commands[process.command]) {
+            const result = await commands[process.command].func(process);
+            if (typeof result === "string") {
+                thisProcessPrefix = result;
+                prefix.innerHTML = thisProcessPrefix;
+                stdout.exitProcess();
+                return;
             }
+            else if (result !== 0)
+                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
         }
 
-        else if (process.argv[0] in aliases) {
-            const result = await commands[aliases[process.argv[0]]].func(process);
-            if (result !== 0) {
-                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+        else if (process.command in aliases) {
+            const result = await commands[aliases[process.command]].func(process);
+            if (typeof result === "string") {
+                thisProcessPrefix = result;
+                prefix.innerHTML = thisProcessPrefix;
+                stdout.exitProcess();
+                return;
             }
+            else if (result !== 0)
+                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
         }
         
         else {
             stdout.error("Command not found.");
         }
+
+        thisProcess = undefined;
 
         stdout.exitProcess();
 
@@ -757,6 +870,17 @@ stdIn.addEventListener("keydown", async (event) => {
 
     }
 
+    else if (event.ctrlKey && event.key == "c") {
+        stdIn.style.height = defaultStdInHeight;
+        prefix.innerHTML = pref;
+        thisProcess = undefined;
+        stdout.exitProcess();
+    }
+
+    else if (event.shiftKey && event.key == "Enter" && !thisProcess)
+        event.preventDefault();
+
+    // stdIn.style.height = "fit-content";
 });
 
 /* input button events */

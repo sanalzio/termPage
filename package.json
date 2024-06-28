@@ -1,6 +1,6 @@
 {
   "name": "termpage",
-  "version": "1.2.8",
+  "version": "1.3.0",
   "description": "My custom like terminal home page.",
   "main": "./src/",
   "scripts": {
