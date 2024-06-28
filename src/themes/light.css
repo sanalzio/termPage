@@ -1,0 +1,48 @@
+:root {
+
+    color-scheme: dark;
+
+
+
+    /* Colors for white theme */
+    --html-background: #dddddd;
+    --html-text: #212121;
+    --html-selection: #212121;
+    --html-selection-text: #dddddd;
+
+    --ansi-black-fg: #212121; /* matches text color */
+    --ansi-red-fg: #ef5959; /* keep pastel red for contrast */
+    --ansi-green-fg: #59ef59; /* keep pastel green for contrast */
+    --ansi-yellow-fg: #efef59; /* keep pastel yellow for contrast */
+    --ansi-blue-fg: #59aaef; /* keep pastel blue for contrast */
+    --ansi-magenta-fg: #ef59ef; /* keep pastel magenta for contrast */
+    --ansi-cyan-fg: #59efef; /* keep pastel cyan for contrast */
+    --ansi-white-fg: #dddddd; /* white (same as background for hiding) */
+
+    --ansi-bright-black-fg: #444444; /* slightly darker text color */
+    --ansi-bright-red-fg: #f35a5a; /* light pastel red */
+    --ansi-bright-green-fg: #5af35a; /* light pastel green */
+    --ansi-bright-yellow-fg: #f3f35a; /* light pastel yellow */
+    --ansi-bright-blue-fg: #5abbf3; /* light pastel blue */
+    --ansi-bright-magenta-fg: #f35af3; /* light pastel magenta */
+    --ansi-bright-cyan-fg: #5af3f3; /* light pastel cyan */
+    --ansi-bright-white-fg: #ededed; /* white (same as background for hiding) */
+
+    --ansi-black-bg: #212121; /* dark color for contrast (optional) */
+    --ansi-red-bg: #ef5959; /* lighter red background */
+    --ansi-green-bg: #59ef59; /* lighter green background */
+    --ansi-yellow-bg: #efef59; /* lighter yellow background */
+    --ansi-blue-bg: #59aaef; /* lighter blue background */
+    --ansi-magenta-bg: #ef59ef; /* lighter magenta background */
+    --ansi-cyan-bg: #59efef; /* lighter cyan background */
+    --ansi-white-bg: #dddddd; /* white (same as background) */
+
+    --ansi-bright-black-bg: #333333; /* darker color for contrast (optional) */
+    --ansi-bright-red-bg: #f35a5a; /* lighter pastel red background */
+    --ansi-bright-green-bg: #5af35a; /* lighter pastel green background */
+    --ansi-bright-yellow-bg: #f3f35a; /* lighter pastel yellow background */
+    --ansi-bright-blue-bg: #5abbf3; /* lighter pastel blue background */
+    --ansi-bright-magenta-bg: #f35af3; /* lighter pastel magenta background */
+    --ansi-bright-cyan-bg: #5af3f3; /* lighter pastel cyan background */
+    --ansi-bright-white-bg: #ededed; /* white (same as background) */
+}

@@ -25,6 +25,8 @@ const stdout = {
     },
     startProcess: function (thisPrefix = prefix.innerHTML) {
 
+        stdIn.setAttribute("rows", "1");
+
         stdOut.innerHTML += thisPrefix +
             stdIn.value +
             "<br>";
@@ -66,13 +68,15 @@ ansi_up.use_classes = true;
 
 const math = new lzar();
 
-const defaultStdInHeight = window.getComputedStyle(stdIn).height;
-
 let bookmarks, settings, manifest, aboutContent;
 
 let times, time24s, timeInterval;
 
+let allowMultiLines = true;
+
 let IPv4, IPv6, ip_location, ISP;
+
+const defaultLog = console.log;
 
 let ipInfoText;
 
@@ -88,6 +92,7 @@ let aliases = {
     "weather": "wttr.in",
     "wttr": "wttr.in",
     "cht_sh": "cht.sh",
+    "js": "javascript",
     "calculator": "calc",
     "math": "calc",
     "lzar": "calc",
@@ -402,6 +407,36 @@ const commands = {
             return 0;
         },
         about: `Print system date.%ALIASES%\nExamples:\n $ date\n $ date --long`
+    },
+    "javascript": {
+        func: async function (process, isInput = false) {
+
+            if(isInput) allowMultiLines = true;
+
+            if (process._ == "") {
+                return "";
+            }
+
+            console.log = content => {
+                stdOut.innerHTML += content+"\n";
+            }
+
+            let output;
+
+            try {
+                output = eval(process._);
+                stdout.log(Fore.Gray + output + Fore.Reset);
+            } catch (error) {
+                stdout.log(error);
+            }
+
+            console.log = defaultLog;
+
+            if(isInput) return "";
+
+            return 0;
+        },
+        about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
     },
     "bookmarks": {
         func: async function (process) {
@@ -807,10 +842,9 @@ stdIn.addEventListener("keydown", async (event) => {
         };
 
         const process = parseInput(stdIn.value);
-
-        thisProcess = process.command;
         
         if (commands[process.command]) {
+            thisProcess = process.command;
             const result = await commands[process.command].func(process);
             if (typeof result === "string") {
                 thisProcessPrefix = result;
@@ -823,6 +857,7 @@ stdIn.addEventListener("keydown", async (event) => {
         }
 
         else if (process.command in aliases) {
+            thisProcess = aliases[process.command];
             const result = await commands[aliases[process.command]].func(process);
             if (typeof result === "string") {
                 thisProcessPrefix = result;
@@ -844,7 +879,7 @@ stdIn.addEventListener("keydown", async (event) => {
 
     }
 
-    else if (event.key == "ArrowUp") {
+    else if (!thisProcess && event.key == "ArrowUp") {
 
         event.preventDefault();
 
@@ -857,7 +892,7 @@ stdIn.addEventListener("keydown", async (event) => {
 
     }
 
-    else if (event.key == "ArrowDown") {
+    else if (!thisProcess && event.key == "ArrowDown") {
 
         event.preventDefault();
 
@@ -871,16 +906,25 @@ stdIn.addEventListener("keydown", async (event) => {
     }
 
     else if (event.ctrlKey && event.key == "c") {
-        stdIn.style.height = defaultStdInHeight;
+        allowMultiLines = false;
         prefix.innerHTML = pref;
         thisProcess = undefined;
         stdout.exitProcess();
     }
 
-    else if (event.shiftKey && event.key == "Enter" && !thisProcess)
+    else if (
+        (
+            !thisProcess ||
+            window.getSelection().toString() !== ""
+        ) &&
+        event.shiftKey &&
+        event.key == "Enter"
+    )
         event.preventDefault();
 
-    // stdIn.style.height = "fit-content";
+    else if (allowMultiLines && event.shiftKey && event.key == "Enter")
+        stdIn.setAttribute("rows", (Number(stdIn.getAttribute("rows")) + 1).toString());
+
 });
 
 /* input button events */

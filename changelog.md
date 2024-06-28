@@ -1,3 +1,11 @@
+# 1.4.0
+
+- Chanaged files layout.
+- Added `javascirpt` command.
+- Edited light theme colors.
+- Added more theme options.
+- Added more wallpapers for background.
+
 # 1.3.0
 
 - Upgraded `echo`, `calc`, `tdk` and `help` commands.

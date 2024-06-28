@@ -1,3 +1,7 @@
+*{
+    box-sizing: border-box !important;
+}
+
 html,
 body {
     color: var(--html-text);
@@ -17,6 +21,7 @@ body {
 
 #main {
     display: none;
+    flex: 1;
     width: var(--main-width);
     height: var(--main-height);
     max-width: var(--main-width);

@@ -1,0 +1,1 @@
+Orginal wallpapers from: https://github.com/EndeavourOS-Community-Editions/Community-wallpapers

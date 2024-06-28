@@ -1,0 +1,8 @@
+:root{
+    --html-background: url("../wallpaper/sanalzio/neon-green.png");
+}
+
+body{
+    background-repeat: no-repeat;
+    background-size: cover;
+}
