@@ -4,7 +4,12 @@ head{
     meta[charset="UTF-8"]%
     meta[name="viewport" content="width=device-width, initial-scale=1.0"]%
     title{New Tab}
+
+    ``` import unmodifiable css files ```
     link[rel="stylesheet" href="./css/ansi-escape.css"]%
+    link[rel="stylesheet" href="./css/style.css"]%
+
+    ``` import modifiable css files ```
     link[rel="stylesheet" href="./themes/default.css"]%
     link[rel="stylesheet" href="./themes/dark.css"]%
     link[rel="stylesheet" href="./themes/glass.css"]%
@@ -15,7 +20,7 @@ body{
         p#std-out{}
         div#form{
             label#prefix[for="std-in"]{span#usr-host.ansi-bright-green-fg{span#user{user}@span#host{host}}:span#cd.ansi-blue-fg{~}&#36;&nbsp;}
-            input#std-in[autocomplete="off" spellcheck="false" type="text" name="std-in"]%
+            textarea#std-in[autocomplete="off" spellcheck="false" type="text" name="std-in" rows="1"]{}
         }
     }
     script[src="./scripts/ansi_up.js"]{}
