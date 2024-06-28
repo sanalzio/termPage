@@ -1,3 +1,7 @@
+# 1.4.1
+
+- `load.sh` file fixed.
+
 # 1.4.0
 
 - Chanaged files layout.
