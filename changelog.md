@@ -1,3 +1,8 @@
+# 1.4.2
+
+- Updated `time` command.
+- Added `timeHours` option to `manifest.json` file.
+
 # 1.4.1
 
 - `load.sh` file fixed.

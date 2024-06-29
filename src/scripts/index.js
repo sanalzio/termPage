@@ -368,27 +368,68 @@ const commands = {
                     if (times)
                         for (let i = 0; i < times.length; i++) {
                             const element = times[i];
-                            element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                            element.innerHTML = new Date().toLocaleTimeString(
+                                [],
+                                {
+                                    hour12: true,
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit"
+                                }
+                            );
                         }
                     if (time24s)
                         for (let i = 0; i < time24s.length; i++) {
                             const element = time24s[i];
-                            element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                            element.innerHTML = new Date().toLocaleTimeString(
+                                [],
+                                {
+                                    hour12: false,
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit"
+                                }
+                            );
                         }
                 }, 1000);
                 return 0;
             }
-            if (process.options["24h"]) {
-                const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            if (
+                process.options["24h"] ||
+                (
+                    !process.options["12h"] &&
+                    settings.timeHours == 24
+                )
+            ) {
+
+                const time = new Date().toLocaleTimeString(
+                    [],
+                    {
+                        hour12: false,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit"
+                    }
+                );
                 stdout.log("<span class=\"time24\">" + time + "</span>", false);
-            } else {
-                const time = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+            } else if (process.options["12h"] || (!process.options["24h"] && settings.timeHours == 12)) {
+
+                const time = new Date().toLocaleTimeString(
+                    [],
+                    {
+                        hour12: true,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        second: "2-digit"
+                    }
+                );
                 stdout.log("<span class=\"time\">" + time + "</span>", false);
             }
             effectiveTime();
             return 0;
         },
-        about: `Print system time.%ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h`
+        about: `Print system time.%ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h\n $ time --12h`
     },
     "about": {
         func: async function (process) {
@@ -402,7 +443,15 @@ const commands = {
             if (process.options.long) {
                 stdout.log(new Date());
             } else {
-                stdout.log(new Date().toLocaleDateString([], { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
+                stdout.log(new Date().toLocaleDateString(
+                    [],
+                    {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    }
+                ));
             }
             return 0;
         },
@@ -758,12 +807,28 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (times)
                 for (let i = 0; i < times.length; i++) {
                     const element = times[i];
-                    element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                    element.innerHTML = new Date().toLocaleTimeString(
+                        [],
+                        {
+                            hour12: true,
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit"
+                        }    
+                    );
                 }
             if (time24s)
                 for (let i = 0; i < time24s.length; i++) {
                     const element = time24s[i];
-                    element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                    element.innerHTML = new Date().toLocaleTimeString(
+                        [],
+                        {
+                            hour12: false,
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit"
+                        }
+                    );
                 }
         }, 1000);
     }
