@@ -65,6 +65,8 @@ body {
     outline: none;
     cursor: default;
     flex-grow: 1;
+    overflow: hidden;
+    text-wrap: nowrap;
 }
 
 #std-out {

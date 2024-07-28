@@ -1,50 +1,5 @@
 /* constant values */
 
-const stdout = {
-    log: function (text, format = true) {
-        if (!format) {
-            stdOut.innerHTML += text + "<br>"
-            return;
-        }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text+"\n").replaceAll("\n", "<br>")
-    },
-    error: function (text, format = true) {
-        if (!format) {
-            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": ").replaceAll("\n", "<br>") + text + "<br>"
-        }
-        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text + "\n").replaceAll("\n", "<br>")
-    },
-    write: function (text, format = true) {
-        if (!format) {
-            stdOut.innerHTML += text
-        }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text).replaceAll("\n", "<br>")
-    },
-    clear: function () {
-        stdOut.innerHTML = "";
-    },
-    startProcess: function (thisPrefix = prefix.innerHTML) {
-
-        stdIn.setAttribute("rows", "1");
-
-        stdOut.innerHTML += thisPrefix +
-            stdIn.value +
-            "<br>";
-
-        if(stdIn.value != "") history.push(stdIn.value);
-        currentHistoryElement = history.length;
-
-        form.style.display = "none";
-
-    },
-    exitProcess: function () {
-        stdIn.value = "";
-        form.style.display = "flex";
-        mainDiv.scrollTop = mainDiv.scrollHeight;
-        stdIn.focus();
-    },
-}
-
 const history = [];
 
 let _echo = true;
@@ -82,6 +37,23 @@ let ipInfoText;
 
 let thisProcess, thisProcessPrefix;
 
+const timeIntervalFunction = () => {
+    if (times)
+
+        for (let i = 0; i < times.length; i++) {
+
+            const element = times[i];
+            element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        }
+    if (time24s)
+
+        for (let i = 0; i < time24s.length; i++) {
+
+            const element = time24s[i];
+            element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        }
+}
+
 let aliases = {
     "cls": "clear",
     "h": "help",
@@ -105,13 +77,84 @@ let aliases = {
 /* constant values */
 
 
+/* get history from localStorage */
+
+if(localStorage.history){
+    history.push(...JSON.parse(localStorage.history));
+    currentHistoryElement = history.length;
+}
+
+/* get history from localStorage */
+
+
+/* Class for stdout file output */
+
+const stdout = {
+    // write input and add line break to output
+    log: function (text, format = true) {
+        if (!format) {
+            stdOut.innerHTML += text + "<br>"
+            return;
+        }
+        stdOut.innerHTML += ansi_up.ansi_to_html(text+"\n").replaceAll("\n", "<br>")
+    },
+    // write error and add line break to output
+    error: function (text, format = true) {
+        if (!format) {
+            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": ").replaceAll("\n", "<br>") + text + "<br>"
+        }
+        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text + "\n").replaceAll("\n", "<br>")
+    },
+    // write input to output
+    write: function (text, format = true) {
+        if (!format) {
+            stdOut.innerHTML += text
+        }
+        stdOut.innerHTML += ansi_up.ansi_to_html(text).replaceAll("\n", "<br>")
+    },
+    // clear console
+    clear: function () {
+        stdOut.innerHTML = "";
+    },
+    // start command process
+    startProcess: function (thisPrefix = prefix.innerHTML) {
+
+        stdIn.setAttribute("rows", "1");
+
+        stdOut.innerHTML += thisPrefix +
+            stdIn.value +
+            "<br>";
+
+        if(stdIn.value != "" && thisProcess === undefined) history.push(stdIn.value);
+        currentHistoryElement = history.length;
+
+        if(settings.remebmerHistory)
+            localStorage.setItem("history", JSON.stringify(history));
+
+        form.style.display = "none";
+
+    },
+    // exit command process
+    exitProcess: function () {
+        stdIn.value = "";
+        form.style.display = "flex";
+        mainDiv.scrollTop = mainDiv.scrollHeight;
+        stdIn.focus();
+    },
+}
+
+/* Class for stdout file output */
+
+
 /* Function for get command aliases */
 
 function getAliases(command) {
 
     let commandAliases = " Aliases: ";
 
+    // loop for all aliases
     for (const [key, value] of Object.entries(aliases)) {
+        // if this aliases for input command
         if (value === command) {
             commandAliases += key + ", ";
         }
@@ -140,38 +183,69 @@ function effectiveTime() {
 /* Function for parse arguments */
 
 function parseInput(input) {
+
+    // arguments
     const argv = [];
+
+    // string from non flag arguments
     let _ = "";
+
+    // flag options
     const options = {};
+
+    // regexp for match arguments
     const regex = /(?:[^\s"]+|"[^"]*")+/g;
+
+    // match arguments
     const args = input.match(regex).map(arg => arg.replace(/(^"|"$)/g, ''));
 
     let i = 0;
     while (i < args.length) {
-        argv.push(args[i]);
-        if (args[i].startsWith('-')) {
-            const key = args[i].replace(/^--?/, '');
+        const arg = args[i];
+
+        // push argument to argv array
+        argv.push(arg);
+
+        // if this is a flag
+        if (arg.startsWith('-')) {
+
+            // get flag name
+            const key = arg.replace(/^--?/, '');
+
+            // if next argument is not a flag
             if ((i + 1) < args.length && !args[i + 1].startsWith('-')) {
-                if (args[i].startsWith('--')) {
+
+                // if flag has an argument
+                if (arg.startsWith('--')) {
+
                     options[key] = args[i + 1];
                     argv.push(args[i + 1]);
                     i += 2;
                 } else {
+
                     options[key] = true;
                     i += 1;
                 }
             } else {
+
                 options[key] = true;
                 i += 1;
             }
         } else {
+
+            // if this is a command name
             if (i===0) i += 1;
+
             else {
+
                 if (_ === "") {
-                    _ = args[i];
+
+                    _ = arg;
                 } else {
-                    _ += " " + args[i];
+
+                    _ += " " + arg;
                 }
+
                 i += 1;
             }
         }
@@ -186,6 +260,7 @@ function parseInput(input) {
 
 
 /* Function for get browser name */
+
 function getBrowserType() {
     const test = (regexp) => {
         return regexp.test(navigator.userAgent);
@@ -208,9 +283,10 @@ function getBrowserType() {
     } else if (test(/samsungbrowser/i)) {
         return "samsung-browser";
     } else {
-        return "host";
+        return "termpage";
     }
 }
+
 /* Function for get browser name */
 
 
@@ -258,34 +334,60 @@ const commands = {
     },
     "cat": {
         func: async function (process, isInput = false) {
+
+            // if is std input
             if(isInput) {
                 stdout.log(process._, true);
+
+                // set std input prefix
                 return "";
             }
+
+            // if no argument
             if (process._ == "") {
+
+                // set std input prefix
                 return "";
             }
+
+            // if argument is a url
             const res = await fetch(process._);
-            const err = res.status !== 200?res.status:null;
+
+            // if connection error
+            const err = res.status !== 200 ? res.status : null;
             if (err) {
+                // log error code
                 stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
-                return 1;
+                // exit with error code
+                return err;
             }
+
             const data = await res.text();
+
+            // log file content
             stdout.log(data, true);
+
+            // exit
             return 0;
         },
         about: `Read file content.%ALIASES%\nExamples:\n $ cat ./file.txt\n $ cat https://example.com/file.txt`
     },
     "echo": {
         func: async function (process, isInput = false) {
+
+            // if no argument
             if (process._ == "") {
+
+                // set std input prefix
                 return "";
             }
 
             stdout.log(process._, false);
 
-            if(isInput) return "";
+            // if is std input
+            if(isInput)
+                // set std input prefix
+                return "";
 
             return 0;
         },
@@ -308,14 +410,18 @@ const commands = {
     "clear": {
         func: async function (process) {
             stdout.clear();
+            if (process.options.all && localStorage.history)
+                localStorage.removeItem("history");
             return 0;
         },
-        about: `Clear console.%ALIASES%`
+        about: `Clear console.%ALIASES%\n Flags:\n  --all - Clear console with history\n Examples:\n  $ clear\n  $ clear --all`
     },
     "bash": {
         func: async function (process) {
             await fetch(process._).then(res => res.text()).then(async (scriptContent) => {
-                if (!(scriptContent === "")) await executeScript(scriptContent);
+                if (!(scriptContent === ""))
+                    // execute script
+                    await executeScript(scriptContent);
             });
             return 0;
         },
@@ -323,110 +429,105 @@ const commands = {
     },
     "sh": {
         func: async function (process, isInput = false) {
+
+            // if is std input
             if(isInput) {
+
+                // parse input arguments
                 const inputProcess = parseInput(process._);
+
+                // execute command
                 if (commands[inputProcess.command]) {
+
+                    // execute command and get reuturned code
                     const result = await commands[inputProcess.command].func(inputProcess);
+
+                    // if returned error
                     if (result !== 0)
-                        stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
-                }
-        
-                else if (inputProcess.command in aliases) {
-                    const result = await commands[aliases[inputProcess.command]].func(inputProcess);
-                    if (result !== 0)
+                        // log error code
                         stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
                 }
                 
+                // execute command if alias exists
+                else if (inputProcess.command in aliases) {
+
+                    // execute command and get reuturned code
+                    const result = await commands[aliases[inputProcess.command]].func(inputProcess);
+
+                    // if returned error
+                    if (result !== 0)
+                        // log error code
+                        stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                }
+                
+                // if command not found
                 else {
                     stdout.error("Command not found.");
                 }
+
+                // set std input prefix
                 return rawPrefix;
             }
             if (process._ == "") {
+
+                // set std input prefix
                 return rawPrefix;
             }
-            
+
+            // exit
             return 0;
         },
         about: `Execute input.%ALIASES%`
     },
     "ipinfo": {
         func: async function (process) {
+
+            // write ip information
             stdout.log(ipInfoText);
+
+            // exit
             return 0;
         },
         about: `Print system ip information.%ALIASES%\nExample:\n $ ipinfo`
     },
     "time": {
         func: async function (process) {
+
+            // if used with --kill
             if (process.options["kill"]) {
                 clearInterval(timeInterval);
                 return 0;
             }
+
+            // if used with --set
             if (process.options["set"]) {
-                timeInterval = setInterval(() => {
-                    if (times)
-                        for (let i = 0; i < times.length; i++) {
-                            const element = times[i];
-                            element.innerHTML = new Date().toLocaleTimeString(
-                                [],
-                                {
-                                    hour12: true,
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit"
-                                }
-                            );
-                        }
-                    if (time24s)
-                        for (let i = 0; i < time24s.length; i++) {
-                            const element = time24s[i];
-                            element.innerHTML = new Date().toLocaleTimeString(
-                                [],
-                                {
-                                    hour12: false,
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    second: "2-digit"
-                                }
-                            );
-                        }
-                }, 1000);
+
+                // set interval to change time on every second
+                timeInterval = setInterval(timeIntervalFunction, 1000);
+
+                // exit
                 return 0;
             }
-            if (
-                process.options["24h"] ||
-                (
-                    !process.options["12h"] &&
-                    settings.timeHours == 24
-                )
-            ) {
 
-                const time = new Date().toLocaleTimeString(
-                    [],
-                    {
-                        hour12: false,
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit"
-                    }
-                );
+            // if used with --24h or default time format is 24 hours
+            if (process.options["24h"] || (!process.options["12h"] && settings.timeHours == 24)) {
+
+                const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
                 stdout.log("<span class=\"time24\">" + time + "</span>", false);
 
-            } else if (process.options["12h"] || (!process.options["24h"] && settings.timeHours == 12)) {
-
-                const time = new Date().toLocaleTimeString(
-                    [],
-                    {
-                        hour12: true,
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit"
-                    }
-                );
-                stdout.log("<span class=\"time\">" + time + "</span>", false);
             }
+
+            // if used with --24h or default time format is 24 hours
+            else if (process.options["12h"] || (!process.options["24h"] && settings.timeHours == 12)) {
+
+                const time = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
+                stdout.log("<span class=\"time\">" + time + "</span>", false);
+
+            }
+
             effectiveTime();
+
+            // exit
             return 0;
         },
         about: `Print system time.%ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h\n $ time --12h`
@@ -440,6 +541,8 @@ const commands = {
     },
     "date": {
         func: async function (process) {
+
+            // if used with --long
             if (process.options.long) {
                 stdout.log(new Date());
             } else {
@@ -453,6 +556,8 @@ const commands = {
                     }
                 ));
             }
+
+            // exit
             return 0;
         },
         about: `Print system date.%ALIASES%\nExamples:\n $ date\n $ date --long`
@@ -460,74 +565,126 @@ const commands = {
     "javascript": {
         func: async function (process, isInput = false) {
 
+            // if is std input allow shift + enter for multiline input
             if(isInput) allowMultiLines = true;
 
+            // if no arguments
             if (process._ == "") {
+
+                // set std input prefix
                 return "";
             }
 
+            // change console log to write to std out
             console.log = content => {
                 stdOut.innerHTML += content+"\n";
             }
 
             let output;
 
+            // create try-catch block for blocking errors
             try {
+                // evaluate input and log output
                 output = eval(process._);
                 stdout.log(Fore.Gray + output + Fore.Reset);
             } catch (error) {
+                // if error log it
                 stdout.log(error);
             }
 
+            // change console log back
             console.log = defaultLog;
 
-            if(isInput) return "";
+            // if is std input
+            if(isInput)
+                // set std input prefix to empty
+                return "";
 
+            // exit
             return 0;
         },
-        about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
+        about: `Execute JavaScript code.%ALIASES%\nExamples:\n $ js console.log("Hello, World!")`
     },
     "bookmarks": {
         func: async function (process) {
-            //// stdout.log(JSON.stringify(bookmarks, null, 4));
-            stdout.log(await (async ()=>{
-                let out = "";
-                for await (const [key, value] of Object.entries(bookmarks)) {
-                    out += Fore.BrightBlue + key + Fore.Reset + ": " + Fore.Blue + value + Fore.Reset + "\n";
-                }
-                return out.slice(0, -1);
-            })());
+            stdout.log(
+                await (
+                    async ()=>{
+
+                        let out = "";
+
+                        for await (const [key, value] of Object.entries(bookmarks)) {
+                            out += Fore.BrightBlue + key + Fore.Reset + ": " + Fore.Blue + value + Fore.Reset + "\n";
+                        }
+
+                        return out.slice(0, -1);
+                    }
+                )()
+            );
             return 0;
         },
         about: `Print all bookmarks.%ALIASES%\nExamples:\n $ bookmarks`
     },
+    "start": {
+        func: async function (process) {
+
+            // if no arguments
+            if (process._ == "") {
+                return 1;
+            }
+
+            // else start program
+            window.open(process.argv[0] + "://" + process.argv.slice(1).join(" "), "_blank");
+            return 0;
+        },
+        about: `Start program with custom URL Protocol.%ALIASES%\nExamples:\n $ start steam`
+    },
     "calc": {
         func: async function (process, isInput = false) {
+
+            // if no arguments
             if (process._ == "") {
+
+                // set std input prefix to empty
                 return "";
             }
 
             stdout.log(math.calc(process._));
 
-            if(isInput) return "";
+            // if is std input
+            if(isInput)
+                // set std input prefix to empty
+                return "";
 
+            // exit
             return 0;
         },
         about: `Calculator.%ALIASES%\nExamples:\n $ calc 2+2\n $ math 2+2`
     },
     "tdk": {
         func: async function (process, isInput = false) {
+
+            // if no arguments
             if (process._ == "") {
+
+                // set std input prefix to empty
                 return "";
             }
 
+            // else make request
             const url = "https://sozluk.gov.tr/gts?ara=" + encodeURI(process._);
             const res = await fetch(url);
             const data = await res.json();
+
+            // format output with tdk function in "scripts/tdk.js" file and log
             stdout.log(tdk(data));
 
-            if(isInput) return "";
+            // if is std input
+            if(isInput)
+                // set std input prefix to empty
+                return "";
 
+            // exit
             return 0;
         },
         about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
@@ -582,39 +739,22 @@ const commands = {
                 location +
                 "?0nA&lang=" +
                 settings.language;
-            const response = await fetch(url);
-            const data = await response.text();
-            stdout.log(data);
-            return 0;
+            try {
+                const response = await fetch(url);
+                const status = response.status;
+                if (status !== 200) {
+                    return status;
+                }
+                const data = await response.text();
+                stdout.log(data);
+                return 0;
+            } catch (error) {
+                stdout.error(error);
+                return 0;
+            }
         },
         about: `Show weather.%ALIASES%\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en`
     },
-    /* This command not working because request blocking by CORS policy.
-
-    "cht.sh": {
-        func: async function (process) {
-            let additionalOptions = "";
-            if (process.options.c) additionalOptions += "Q";
-            if (!process._ || process._ == "") {
-                stdout.error("Please enter a search term.");
-                return 1;
-            } else {
-                const res = await fetch(
-                    "https://cht.sh/" +
-                    encodeURI(process._) +
-                    "?qT" +
-                    additionalOptions
-                );
-                const data = await res.text();
-                const doc = new DOMParser().parseFromString(data, 'text/html');
-                const preElement = doc.querySelector("pre");
-                const content = preElement.textContent;
-                stdout.log(content);
-            }
-            return 0;
-        },
-        about: `Get cheat sheet.%ALIASES%\nFlags:\n -c: code only, don't show text\nExamples:\n $ cht.sh -c python/hello world\n $ cht.sh btrfs`
-    }, */
     "search": {
         func: async function (process) {
             if (!process._ || process._ == "") {
@@ -633,18 +773,36 @@ const commands = {
     "help": {
         func: async function (process) {
             if (process._) {
-                stdout.log(
-                    Fore.BrightBlue +
-                    process._ +
-                    Fore.Reset +
-                    ": " +
-                    Fore.Blue +
-                    commands[process._].about.replace(
-                        "%ALIASES%",
-                        getAliases(process._)
-                    ) +
-                    Fore.Reset
-                );
+                if (commands[process._]) 
+                    stdout.log(
+                        Fore.BrightBlue +
+                        process._ +
+                        Fore.Reset +
+                        ": " +
+                        Fore.Blue +
+                        commands[process._].about.replace(
+                            "%ALIASES%",
+                            getAliases(process._)
+                        ) +
+                        Fore.Reset
+                    );
+                else if (commands[aliases[process._]]) 
+                    stdout.log(
+                        Fore.BrightBlue +
+                        aliases[process._] +
+                        Fore.Reset +
+                        ": " +
+                        Fore.Blue +
+                        commands[aliases[process._]].about.replace(
+                            "%ALIASES%",
+                            getAliases(aliases[process._])
+                        ) +
+                        Fore.Reset
+                    );
+                else {
+                    stdout.error("Command not found.");
+                    return 1;
+                }
                 return 0;
             }
 
@@ -681,11 +839,12 @@ async function execute(command) {
 
     let exitCode = 0;
 
-    stdOut.innerHTML += prefix.innerHTML +
+    // disable writing preffix and command
+    /* stdOut.innerHTML += prefix.innerHTML +
         command +
         "<br>";
     
-    form.style.display = "none";
+    form.style.display = "none"; */
 
 
 
@@ -772,6 +931,8 @@ stdIn.addEventListener("input", (event) => {
 window.addEventListener("keydown", async (event) => {
 
     if (event.key == "Enter" && window.getSelection().toString()) {
+        event.preventDefault();
+
         await navigator.clipboard.writeText(window.getSelection().toString());
         window.getSelection().removeAllRanges();
     }
@@ -780,6 +941,7 @@ window.addEventListener("keydown", async (event) => {
 
 mainDiv.addEventListener("contextmenu", async (event) => {
     event.preventDefault();
+
     const clipboardText = await navigator.clipboard.readText();
     stdIn.value = stdIn.value.substring(0, stdIn.selectionStart) + clipboardText + stdIn.value.substring(stdIn.selectionEnd);
     if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus();
@@ -787,6 +949,26 @@ mainDiv.addEventListener("contextmenu", async (event) => {
 });
 
 /* copy paste like terminal */
+
+
+/* scroll with keyboard like terminal */
+
+mainDiv.addEventListener("keydown", (event) => {
+    if (event.ctrlKey && event.shiftKey && event.key == "ArrowUp") {
+
+        event.preventDefault();
+
+        mainDiv.scrollBy(0, -100);
+    }
+    if (event.ctrlKey && event.shiftKey && event.key == "ArrowDown") {
+
+        event.preventDefault();
+
+        mainDiv.scrollBy(0, 100);
+    }
+});
+
+/* scroll with keyboard like terminal */
 
 
 /* on load */
@@ -807,43 +989,32 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (times)
                 for (let i = 0; i < times.length; i++) {
                     const element = times[i];
-                    element.innerHTML = new Date().toLocaleTimeString(
-                        [],
-                        {
-                            hour12: true,
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit"
-                        }    
-                    );
+                    element.innerHTML = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
                 }
             if (time24s)
                 for (let i = 0; i < time24s.length; i++) {
                     const element = time24s[i];
-                    element.innerHTML = new Date().toLocaleTimeString(
-                        [],
-                        {
-                            hour12: false,
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit"
-                        }
-                    );
+                    element.innerHTML = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
                 }
         }, 1000);
     }
 
-    const wtfismyipRES = await fetch("https://wtfismyip.com/json");
-    const wtfismyipSJON = await wtfismyipRES.json();
-
-    IPv6 = wtfismyipSJON["YourFuckingIPAddress"];
-    ip_location = wtfismyipSJON["YourFuckingLocation"];
-    ISP = wtfismyipSJON["YourFuckingISP"];
-
-    const httpbinRES = await fetch("https://httpbin.org/ip", { "mode" : "cors" });
-    const httpbinJSON = await httpbinRES.json();
-
-    IPv4 = httpbinJSON.origin;
+    try {
+        const wtfismyipRES = await fetch("https://wtfismyip.com/json");
+        const wtfismyipSJON = await wtfismyipRES.json();
+    
+        IPv6 = wtfismyipSJON["YourFuckingIPAddress"];
+        ip_location = wtfismyipSJON["YourFuckingLocation"];
+        ISP = wtfismyipSJON["YourFuckingISP"];
+    
+        const httpbinRES = await fetch("https://httpbin.org/ip", { "mode" : "cors" });
+        const httpbinJSON = await httpbinRES.json();
+    
+        IPv4 = httpbinJSON.origin;
+    } catch (error) {
+        console.log(error);
+        IPv6, ip_location, ISP, IPv4 = "?";
+    }
 
     rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;"
 
@@ -888,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 stdIn.addEventListener("keydown", async (event) => {
 
-    if (!event.shiftKey && event.key == "Enter") {
+    if (!event.shiftKey && event.key == "Enter" && !window.getSelection().toString()) {
 
         event.preventDefault();
 
@@ -944,33 +1115,37 @@ stdIn.addEventListener("keydown", async (event) => {
 
     }
 
-    else if (!thisProcess && event.key == "ArrowUp") {
+    else if (!thisProcess && event.key == "ArrowUp" && !(event.ctrlKey && event.shiftKey)) {
 
         event.preventDefault();
 
         if (currentHistoryElement > 0) {
 
-            stdIn.value = history[currentHistoryElement - 1];
-            currentHistoryElement-=1;
-
+            stdIn.value = history[currentHistoryElement -1];
+            
+            if(currentHistoryElement > 1)
+                currentHistoryElement -= 1;
+            
         }
 
     }
 
-    else if (!thisProcess && event.key == "ArrowDown") {
+    else if (!thisProcess && event.key == "ArrowDown" && !(event.ctrlKey && event.shiftKey)) {
 
         event.preventDefault();
 
-        if (currentHistoryElement-1 < history.length) {
+        if (currentHistoryElement - 1 < history.length) {
 
             stdIn.value = history[currentHistoryElement] ?? "";
-            currentHistoryElement+=1;
+            
+            if(currentHistoryElement < history.length)
+                currentHistoryElement += 1;
 
         }
 
     }
 
-    else if (event.ctrlKey && event.key == "c") {
+    else if (event.ctrlKey && event.key == "c" && thisProcess !== undefined && !window.getSelection().toString()) {
         allowMultiLines = false;
         prefix.innerHTML = pref;
         thisProcess = undefined;

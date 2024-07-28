@@ -1,3 +1,11 @@
+# 1.5.0
+
+- Added `start` command. (Works with custom URL Protocol.)
+- Fixed history algortym. (Maybe.)
+- Added remember history option to manifest.json for remember history algortym.
+- Added remember history algortym. (Works with site local storage.)
+- Added `--all` flag to `clear` command. (Use `help clear` for more information.)
+
 # 1.4.2
 
 - Updated `time` command.

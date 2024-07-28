@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.4.2",
+    "version": "1.5.0",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -28,7 +28,9 @@
 
         "effectiveTime": false,
 
-        "timeHours": 12
+        "timeHours": 12,
+
+        "remebmerHistory": false
     },
 
     "bookmarks": {
