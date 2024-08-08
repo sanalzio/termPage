@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -14,11 +14,13 @@
 
         "title": "New Tab",
 
+        "tab_favicon": null,
+
         "user": "sanalzio",
 
         "host": null,
 
-        "search-engine-url": "https://duckduckgo.com/?q=$1",
+        "search-engine-url": "https://duckduckgo.com/?q=$&",
 
         "location": "Ankara",
 
@@ -30,19 +32,42 @@
 
         "timeHours": 12,
 
-        "remebmerHistory": false
+        "remebmerHistory": false,
+
+        "color_scheme": "dark"
     },
 
     "bookmarks": {
-        "github" : "https://github.com",
-        "discord" : "https://discord.com",
-        "youtube" : "https://youtube.com",
-        "instagram" : "https://instagram.com",
+        "gh" : "https://github.com",
+        "cd" : "https://discord.com",
+        "yt" : "https://youtube.com",
+        "insta" : "https://instagram.com",
         "linkedin" : "https://linkedin.com",
-        "whatsapp" : "https://web.whatsapp.com",
+        "ws" : "https://web.whatsapp.com",
         "gmail" : "https://mail.google.com",
         "btt" : "https://btt.community"
     },
 
-    "aliases": {}
+    "search_engines": {
+        "yt": "https://www.youtube.com/results?search_query=$&",
+        "dd": "https://devdocs.io/#q=$&",
+        "g": "https://www.google.com/search?q=$&"
+    },
+
+    "aliases": {
+        "cls": "clear",
+        "?": "help",
+        "wttr": "wttr.in",
+        "reboot": "reload",
+        "shutdown": "close",
+        "js": "javascript",
+        "lzar": "calc",
+        "ip": "ipinfo",
+        "ipconfig": "ipinfo"
+    },
+
+    "themes": [
+        "./themes/glass.css",
+        "./themes/custom-background.css"
+    ]
 }

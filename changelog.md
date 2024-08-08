@@ -1,3 +1,12 @@
+# 1.6.0
+
+- Created `readme.md` file.
+- Chanaged some default aliases to optional.
+- Added custom search engine system to `search` command.
+- Added custom theme css file system for `manifest.json` file.
+- Added custom favicon system for `manifest.json` file.
+- Renamed default bookmarks.
+
 # 1.5.0
 
 - Added `start` command. (Works with custom URL Protocol.)

@@ -1,8 +1,7 @@
 /* constant values */
 
-const history = [];
-
-let _echo = true;
+// array for command history
+let history = [];
 
 let currentHistoryElement = 0;
 
@@ -13,30 +12,38 @@ const form = document.getElementById("form");
 const mainDiv = document.getElementById("main");
 const stdIn = document.getElementById("std-in");
 const stdOut = document.getElementById("std-out");
+const color_scheme = document.getElementById("color_scheme");
 
+// default prefix
 let pref = prefix.innerHTML;
 
 let rawPrefix;
 
+// setup ansi up module
 const ansi_up = new AnsiUp;
 ansi_up.use_classes = true;
 
+// setup lzar module for math command
 const math = new lzar();
 
 let bookmarks, settings, manifest, aboutContent;
 
 let times, time24s, timeInterval;
 
+// for shift+enter event
 let allowMultiLines = true;
 
+// ip info
 let IPv4, IPv6, ip_location, ISP;
 
+// for eval command
 const defaultLog = console.log;
 
 let ipInfoText;
 
 let thisProcess, thisProcessPrefix;
 
+// interval function for effective time event
 const timeIntervalFunction = () => {
     if (times)
 
@@ -54,23 +61,14 @@ const timeIntervalFunction = () => {
         }
 }
 
+// default aliases
 let aliases = {
-    "cls": "clear",
     "h": "help",
-    "?": "help",
     "s": "search",
-    "reboot": "reload",
-    "shutdown": "close",
     "weather": "wttr.in",
-    "wttr": "wttr.in",
-    "cht_sh": "cht.sh",
-    "js": "javascript",
     "calculator": "calc",
     "math": "calc",
-    "lzar": "calc",
     "open": "openurl",
-    "ip": "ipinfo",
-    "ipconfig": "ipinfo",
     "@ECHO": "@echo"
 }
 
@@ -290,7 +288,7 @@ function getBrowserType() {
 /* Function for get browser name */
 
 
-/* chanage names on load */
+/* chanage some tags name on load */
 
 function nameChange() {
     
@@ -308,7 +306,7 @@ function nameChange() {
 
 }
 
-/* chanage names on load */
+/* chanage some tags name on load */
 
 
 /* commands */
@@ -317,6 +315,7 @@ const commands = {
     "test": {
         func: async function (process) {
             stdout.log("\n\n\x1b[1;33;40m 33;40  \x1b[1;33;41m 33;41  \x1b[1;33;42m 33;42  \x1b[1;33;43m 33;43  \x1b[1;33;44m 33;44  \x1b[1;33;45m 33;45  \x1b[1;33;46m 33;46  \x1b[1m\x1b[0m\n\n\x1b[1;33;42m >> Tests OK\x1b[0m\n\n");
+            // stdout.log(JSON.stringify(process, null, 4));
             return 0;
         },
         about: `Test command.%ALIASES%`
@@ -410,8 +409,17 @@ const commands = {
     "clear": {
         func: async function (process) {
             stdout.clear();
-            if (process.options.all && localStorage.history)
-                localStorage.removeItem("history");
+
+            // clear history
+            if (process.options.all) {
+                history = [];
+                currentHistoryElement = 0;
+
+                // if rememberHistory option is enabled
+                if (localStorage.history)
+                    localStorage.removeItem("history");
+            }
+
             return 0;
         },
         about: `Clear console.%ALIASES%\n Flags:\n  --all - Clear console with history\n Examples:\n  $ clear\n  $ clear --all`
@@ -710,11 +718,17 @@ const commands = {
     },
     "openurl": {
         func: async function (process) {
+            let url = process._
+
+            if(!url.startsWith("http://") && !url.startsWith("https://"))
+                url = "https://" + url;
+
             if (process.options.s) {
-                window.open(process._, "_self");
+                window.open(url, "_self");
                 return 0;
             }
-            window.open(process._, "_blank");
+
+            window.open(url, "_blank");
             return 0;
         },
         about: `Open url.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ openurl https://example.com`
@@ -761,14 +775,26 @@ const commands = {
                 stdout.error("Please enter a search term.");
                 return 1;
             }
-            if (process.options.b) {
-                window.open(settings["search-engine-url"].replace("$1", process._), "_blank");
-            } else {
-                window.open(settings["search-engine-url"].replace("$1", process._), "_self");
+
+            let url = encodeURI(process._).replace(encodeURI(process._), settings["search-engine-url"]);
+
+            for (const [k, v] of Object.entries(process.options)) {
+                if ("b" == k) continue;
+
+                if (manifest.search_engines[k]) {
+                    url = encodeURI(process._).replace(encodeURI(process._), manifest.search_engines[k]);
+                }
             }
+
+            if (process.options.b) {
+                window.open(url, "_blank");
+            } else {
+                window.open(url, "_self");
+            }
+
             return 0;
         },
-        about: `Search in the web.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ search sanalzio\n $ s -b sanalzio`
+        about: `Search in the web.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ search sanalzio\n $ s -b sanalzio\n $ s -yt Röportaj Adam`
     },
     "help": {
         func: async function (process) {
@@ -847,7 +873,7 @@ async function execute(command) {
     form.style.display = "none"; */
 
 
-
+    // if this input is a comment, ignore it
     if(command === "" || command.startsWith("#")) exitCode = 0;
 
     const process = parseInput(command);
@@ -926,8 +952,43 @@ stdIn.addEventListener("input", (event) => {
 /* auto focus to #std-in */
 
 
+/* funtion for load custom themes from manifest.json */
+
+function applyThemes() {
+    for (let i = 0; i < manifest.themes.length; i++) {
+        const themeFilePath = manifest.themes[i];
+
+        const themeElement = document.createElement("link");
+        themeElement.setAttribute("rel", "stylesheet");
+        themeElement.setAttribute("href", themeFilePath);
+        document.head.appendChild(themeElement);
+    }
+}
+
+/* funtion for load custom themes from manifest.json */
+
+
+/* funtion for load favicon */
+
+function loadFavicon() {
+    if(!settings.tab_favicon) return;
+
+
+    const favicon = document.createElement("link");
+
+    favicon.setAttribute("rel", "shortcut icon");
+    favicon.setAttribute("type", "image/x-icon");
+    favicon.setAttribute("href", settings.tab_favicon);
+
+    document.head.appendChild(favicon);
+}
+
+/* funtion for load favicon */
+
+
 /* copy paste like terminal */
 
+// copy to clipboard with just enter key
 window.addEventListener("keydown", async (event) => {
 
     if (event.key == "Enter" && window.getSelection().toString()) {
@@ -939,6 +1000,7 @@ window.addEventListener("keydown", async (event) => {
 
 });
 
+// paste with right click
 mainDiv.addEventListener("contextmenu", async (event) => {
     event.preventDefault();
 
@@ -983,6 +1045,12 @@ document.addEventListener('DOMContentLoaded', async function() {
     settings = manifest.terminal_settings;
     aliases = {...manifest.aliases, ...aliases};
     bookmarks = manifest.bookmarks;
+
+    color_scheme.href = "./themes/" + settings.color_scheme.toLowerCase() + ".css";
+
+    applyThemes();
+
+    loadFavicon();
 
     if (settings.effectiveTime) {
         timeInterval = setInterval(() => {
@@ -1034,6 +1102,7 @@ document.addEventListener('DOMContentLoaded', async function() {
  ${Fore.BrightBlue}ISP${Fore.Reset}      : ${Fore.Blue}${ISP}${Fore.Reset}
  ${Fore.BrightBlue}Location${Fore.Reset} : ${Fore.Blue}${ip_location}${Fore.Reset}
 `;
+
     if (settings.allowLoadScript) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
         if (!(loadScript === "")) await executeScript(loadScript);
     });
