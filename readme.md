@@ -2,6 +2,10 @@
 
 My custom like terminal home page.
 
+### > [Click to visit demo ▶](https://sanalzio.github.io/termPage/src/index.html) <
+
+<br>
+
 ![screenshot](./Screenshot.png)
 
 ## Installation
