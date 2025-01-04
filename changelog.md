@@ -1,3 +1,10 @@
+# 1.7.0
+
+- Added `sengs` command.
+- Added timeout for requests.
+- Chanaged `openurl` command name to `open`.
+- Added favicon.
+
 # 1.6.0
 
 - Created `readme.md` file.

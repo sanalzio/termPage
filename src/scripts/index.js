@@ -68,11 +68,24 @@ let aliases = {
     "weather": "wttr.in",
     "calculator": "calc",
     "math": "calc",
-    "open": "openurl",
     "@ECHO": "@echo"
 }
 
 /* constant values */
+
+/* fetch function with timeout */
+
+function request(url, options = {}, timeout = 7000) {
+                                // (miliseconds)
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), timeout)
+        )
+    ]);
+}
+
+/* fetch function with timeout */
 
 
 /* get history from localStorage */
@@ -633,6 +646,26 @@ const commands = {
         },
         about: `Print all bookmarks.%ALIASES%\nExamples:\n $ bookmarks`
     },
+    "sengs": {
+        func: async function (process) {
+            stdout.log(
+                await (
+                    async ()=>{
+
+                        let out = "";
+
+                        for await (const [key, value] of Object.entries(manifest.search_engines)) {
+                            out += Fore.BrightBlue + key + Fore.Reset + ": " + Fore.Blue + value + Fore.Reset + "\n";
+                        }
+
+                        return out.slice(0, -1);
+                    }
+                )()
+            );
+            return 0;
+        },
+        about: `Print all custom search engines.%ALIASES%`
+    },
     "start": {
         func: async function (process) {
 
@@ -681,7 +714,7 @@ const commands = {
 
             // else make request
             const url = "https://sozluk.gov.tr/gts?ara=" + encodeURI(process._);
-            const res = await fetch(url);
+            const res = await request(url, {}, 4000);
             const data = await res.json();
 
             // format output with tdk function in "scripts/tdk.js" file and log
@@ -716,7 +749,7 @@ const commands = {
         },
         about: `Go bookmark.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ go github\n $ go -b github"`
     },
-    "openurl": {
+    "open": {
         func: async function (process) {
             let url = process._
 
@@ -737,7 +770,7 @@ const commands = {
         func: async function (process) {
             if (process.options.c) {
                 const url = "https://wttr.in/" + process._
-                const response = await fetch(url);
+                const response = await request(url, {}, 4000);
                 const data = await response.text();
                 stdout.log(data);
                 return 0;
@@ -754,7 +787,7 @@ const commands = {
                 "?0nA&lang=" +
                 settings.language;
             try {
-                const response = await fetch(url);
+                const response = await request(url, {}, 4000);
                 const status = response.status;
                 if (status !== 200) {
                     return status;
@@ -1068,14 +1101,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     try {
-        const wtfismyipRES = await fetch("https://wtfismyip.com/json");
+        const wtfismyipRES = await request("https://wtfismyip.com/json", {}, 4000);
         const wtfismyipSJON = await wtfismyipRES.json();
     
         IPv6 = wtfismyipSJON["YourFuckingIPAddress"];
         ip_location = wtfismyipSJON["YourFuckingLocation"];
         ISP = wtfismyipSJON["YourFuckingISP"];
     
-        const httpbinRES = await fetch("https://httpbin.org/ip", { "mode" : "cors" });
+        const httpbinRES = await request("https://httpbin.org/ip", { "mode" : "cors" }, 4000);
         const httpbinJSON = await httpbinRES.json();
     
         IPv4 = httpbinJSON.origin;
