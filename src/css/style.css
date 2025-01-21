@@ -77,6 +77,13 @@ body {
     white-space: pre;
 }
 
+#std-out a{
+    color: currentColor;
+}
+#std-out fieldset{
+    border-color: currentColor;
+}
+
 ::selection {
     background-color: var(--html-selection);
     color: var(--html-selection-text);

@@ -44,8 +44,7 @@
         "insta" : "https://instagram.com",
         "linkedin" : "https://linkedin.com",
         "ws" : "https://web.whatsapp.com",
-        "gmail" : "https://mail.google.com",
-        "btt" : "https://btt.community"
+        "gmail" : "https://mail.google.com"
     },
 
     "search_engines": {
@@ -69,5 +68,12 @@
     "themes": [
         "./themes/glass.css",
         "./themes/custom-background.css"
+    ],
+
+    "modules": [
+        "example",
+
+        "libraries/tdk",
+        "tdk"
     ]
 }

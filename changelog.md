@@ -1,3 +1,8 @@
+# 1.8.0
+- Added module system.
+- Fixed stdout class `write` and `error` functions.
+- Added <kbd>**Home**</kbd> and <kbd>**End**</kbd> buttons system.
+
 # 1.7.0
 
 - Added `sengs` command.

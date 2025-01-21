@@ -14,6 +14,9 @@ const stdIn = document.getElementById("std-in");
 const stdOut = document.getElementById("std-out");
 const color_scheme = document.getElementById("color_scheme");
 
+// modules folder location
+const modulesFolderLocation = location.href.split("/").slice(0,-1).join("/") + "/modules/";
+
 // default prefix
 let pref = prefix.innerHTML;
 
@@ -102,26 +105,28 @@ if(localStorage.history){
 
 const stdout = {
     // write input and add line break to output
-    log: function (text, format = true) {
+    log: function (text, format = true, autoReset = true) {
         if (!format) {
-            stdOut.innerHTML += text + "<br>"
+            stdOut.innerHTML += text + "<br>";
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text+"\n").replaceAll("\n", "<br>")
+        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ?Fore.Reset: "") + "\n").replaceAll("\n", "<br>")
     },
     // write error and add line break to output
-    error: function (text, format = true) {
+    error: function (text, format = true, autoReset = true) {
         if (!format) {
-            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": ").replaceAll("\n", "<br>") + text + "<br>"
+            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
+            return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text + "\n").replaceAll("\n", "<br>")
+        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text + (autoReset ?Fore.Reset: "") + "\n").replaceAll("\n", "<br>");
     },
     // write input to output
-    write: function (text, format = true) {
+    write: function (text, format = true, autoReset = false) {
         if (!format) {
-            stdOut.innerHTML += text
+            stdOut.innerHTML += text;
+            return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text).replaceAll("\n", "<br>")
+        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ?Fore.Reset: "")).replaceAll("\n", "<br>");
     },
     // clear console
     clear: function () {
@@ -593,7 +598,7 @@ const commands = {
             if (process._ == "") {
 
                 // set std input prefix
-                return "";
+                return ">&nbsp;";
             }
 
             // change console log to write to std out
@@ -607,7 +612,7 @@ const commands = {
             try {
                 // evaluate input and log output
                 output = eval(process._);
-                stdout.log(Fore.Gray + output + Fore.Reset);
+                stdout.log(Fore.Magenta + "< " + output + Fore.Reset);
             } catch (error) {
                 // if error log it
                 stdout.log(error);
@@ -619,7 +624,7 @@ const commands = {
             // if is std input
             if(isInput)
                 // set std input prefix to empty
-                return "";
+                return ">&nbsp;";
 
             // exit
             return 0;
@@ -687,7 +692,7 @@ const commands = {
             if (process._ == "") {
 
                 // set std input prefix to empty
-                return "";
+                return ">&nbsp;";
             }
 
             stdout.log(math.calc(process._));
@@ -695,40 +700,12 @@ const commands = {
             // if is std input
             if(isInput)
                 // set std input prefix to empty
-                return "";
+                return ">&nbsp;";
 
             // exit
             return 0;
         },
         about: `Calculator.%ALIASES%\nExamples:\n $ calc 2+2\n $ math 2+2`
-    },
-    "tdk": {
-        func: async function (process, isInput = false) {
-
-            // if no arguments
-            if (process._ == "") {
-
-                // set std input prefix to empty
-                return "";
-            }
-
-            // else make request
-            const url = "https://sozluk.gov.tr/gts?ara=" + encodeURI(process._);
-            const res = await request(url, {}, 4000);
-            const data = await res.json();
-
-            // format output with tdk function in "scripts/tdk.js" file and log
-            stdout.log(tdk(data));
-
-            // if is std input
-            if(isInput)
-                // set std input prefix to empty
-                return "";
-
-            // exit
-            return 0;
-        },
-        about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
     },
     "go": {
         func: async function (process) {
@@ -1019,6 +996,19 @@ function loadFavicon() {
 /* funtion for load favicon */
 
 
+/* function for load module script to dom */
+
+function loadModuleDom(moduleName) {
+    const moduleScriptElement = document.createElement("script");
+    moduleScriptElement.src = modulesFolderLocation + moduleName.replace(" ", "-") + ".js";
+
+    // document.body.insertBefore(moduleScriptElement, document.getElementById("index-script-el"));
+    document.body.appendChild(moduleScriptElement);
+}
+
+/* function for load module script to dom */
+
+
 /* copy paste like terminal */
 
 // copy to clipboard with just enter key
@@ -1049,6 +1039,7 @@ mainDiv.addEventListener("contextmenu", async (event) => {
 /* scroll with keyboard like terminal */
 
 mainDiv.addEventListener("keydown", (event) => {
+
     if (event.ctrlKey && event.shiftKey && event.key == "ArrowUp") {
 
         event.preventDefault();
@@ -1061,9 +1052,27 @@ mainDiv.addEventListener("keydown", (event) => {
 
         mainDiv.scrollBy(0, 100);
     }
+
 });
 
 /* scroll with keyboard like terminal */
+
+/* home and end buttons */
+
+window.addEventListener("keydown", (event) => {
+
+    if (event.key == "Home") {
+        event.preventDefault();
+        mainDiv.scrollTop = 0;
+    }
+    if (event.key == "End") {
+        event.preventDefault();
+        mainDiv.scrollTop = mainDiv.scrollHeight;
+    }
+
+});
+
+/* home and end buttons */
 
 
 /* on load */
@@ -1084,6 +1093,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     applyThemes();
 
     loadFavicon();
+
+    for (let i = 0; i < manifest.modules.length; i++) {
+        const moduleName = manifest.modules[i];
+        loadModuleDom(moduleName);
+    }
 
     if (settings.effectiveTime) {
         timeInterval = setInterval(() => {
