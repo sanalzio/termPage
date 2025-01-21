@@ -1,3 +1,7 @@
+# 1.8.1
+- Fixed scrolling on click to any point.
+- Fixed <kbd>**Home**</kbd> and <kbd>**End**</kbd> buttons system.
+
 # 1.8.0
 - Added module system.
 - Fixed stdout class `write` and `error` functions.

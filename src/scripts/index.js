@@ -952,7 +952,7 @@ async function executeScript(scriptContent) {
 /* auto focus to #std-in */
 
 mainDiv.addEventListener("click", (event) => {
-    if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus();
+    if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus({ preventScroll: true });
 });
 
 stdIn.addEventListener("input", (event) => {
@@ -1002,7 +1002,6 @@ function loadModuleDom(moduleName) {
     const moduleScriptElement = document.createElement("script");
     moduleScriptElement.src = modulesFolderLocation + moduleName.replace(" ", "-") + ".js";
 
-    // document.body.insertBefore(moduleScriptElement, document.getElementById("index-script-el"));
     document.body.appendChild(moduleScriptElement);
 }
 
@@ -1030,7 +1029,6 @@ mainDiv.addEventListener("contextmenu", async (event) => {
     const clipboardText = await navigator.clipboard.readText();
     stdIn.value = stdIn.value.substring(0, stdIn.selectionStart) + clipboardText + stdIn.value.substring(stdIn.selectionEnd);
     if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus();
-    mainDiv.scrollTop = mainDiv.scrollHeight;
 });
 
 /* copy paste like terminal */
@@ -1059,7 +1057,7 @@ mainDiv.addEventListener("keydown", (event) => {
 
 /* home and end buttons */
 
-window.addEventListener("keydown", (event) => {
+stdOut.addEventListener("keydown", (event) => {
 
     if (event.key == "Home") {
         event.preventDefault();
