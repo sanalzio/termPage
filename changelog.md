@@ -1,3 +1,6 @@
+# 1.8.2
+- Updated `request` and `stdout.error` functions.
+
 # 1.8.1
 - Fixed scrolling on click to any point.
 - Fixed <kbd>**Home**</kbd> and <kbd>**End**</kbd> buttons system.

@@ -78,14 +78,16 @@ let aliases = {
 
 /* fetch function with timeout */
 
-function request(url, options = {}, timeout = 7000) {
+function request(url, options = {}, timeout = 4000, logErr = true) {
                                 // (miliseconds)
-    return Promise.race([
+    return req = Promise.race([
         fetch(url, options),
         new Promise((_, reject) =>
             setTimeout(() => reject(new Error('timeout')), timeout)
         )
-    ]);
+    ]).catch(err => {
+        if (logErr) stdout.log(err);
+    });
 }
 
 /* fetch function with timeout */
@@ -773,7 +775,7 @@ const commands = {
                 stdout.log(data);
                 return 0;
             } catch (error) {
-                stdout.error(error);
+                stdout.log(error);
                 return 0;
             }
         },
@@ -1113,14 +1115,14 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     try {
-        const wtfismyipRES = await request("https://wtfismyip.com/json", {}, 4000);
+        const wtfismyipRES = await request("https://wtfismyip.com/json", {}, 4000, false);
         const wtfismyipSJON = await wtfismyipRES.json();
     
         IPv6 = wtfismyipSJON["YourFuckingIPAddress"];
         ip_location = wtfismyipSJON["YourFuckingLocation"];
         ISP = wtfismyipSJON["YourFuckingISP"];
     
-        const httpbinRES = await request("https://httpbin.org/ip", { "mode" : "cors" }, 4000);
+        const httpbinRES = await request("https://httpbin.org/ip", { "mode" : "cors" }, 4000, false);
         const httpbinJSON = await httpbinRES.json();
     
         IPv4 = httpbinJSON.origin;

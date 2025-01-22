@@ -10,7 +10,12 @@ commands["tdk"] = {
 
         // else make request
         const url = "https://sozluk.gov.tr/gts?ara=" + encodeURI(process._);
-        const res = await request(url, {}, 4000);
+        const res = await request(url, {});
+        const err = res.status !== 200 ? res.status : null;
+        if (err) {
+            stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
+            return err;
+        }
         const data = await res.json();
 
         // format output with tdk function in "scripts/tdk.js" file and log
