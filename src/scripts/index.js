@@ -36,13 +36,8 @@ let times, time24s, timeInterval;
 // for shift+enter event
 let allowMultiLines = true;
 
-// ip info
-let IPv4, IPv6, ip_location, ISP;
-
 // for eval command
 const defaultLog = console.log;
-
-let ipInfoText;
 
 let thisProcess, thisProcessPrefix;
 
@@ -78,9 +73,9 @@ let aliases = {
 
 /* fetch function with timeout */
 
-function request(url, options = {}, timeout = 4000, logErr = true) {
-                                // (miliseconds)
-    return req = Promise.race([
+async function request(url, options = {}, timeout = 4000, logErr = true) {
+                                      // (miliseconds)
+    return Promise.race([
         fetch(url, options),
         new Promise((_, reject) =>
             setTimeout(() => reject(new Error('timeout')), timeout)
@@ -506,17 +501,6 @@ const commands = {
             return 0;
         },
         about: `Execute input.%ALIASES%`
-    },
-    "ipinfo": {
-        func: async function (process) {
-
-            // write ip information
-            stdout.log(ipInfoText);
-
-            // exit
-            return 0;
-        },
-        about: `Print system ip information.%ALIASES%\nExample:\n $ ipinfo`
     },
     "time": {
         func: async function (process) {
@@ -1114,23 +1098,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 
-    try {
-        const wtfismyipRES = await request("https://wtfismyip.com/json", {}, 4000, false);
-        const wtfismyipSJON = await wtfismyipRES.json();
-    
-        IPv6 = wtfismyipSJON["YourFuckingIPAddress"];
-        ip_location = wtfismyipSJON["YourFuckingLocation"];
-        ISP = wtfismyipSJON["YourFuckingISP"];
-    
-        const httpbinRES = await request("https://httpbin.org/ip", { "mode" : "cors" }, 4000, false);
-        const httpbinJSON = await httpbinRES.json();
-    
-        IPv4 = httpbinJSON.origin;
-    } catch (error) {
-        console.log(error);
-        IPv6, ip_location, ISP, IPv4 = "?";
-    }
-
     rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;"
 
     nameChange();
@@ -1142,12 +1109,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
  ${Fore.Red}█${Fore.Reset} ${Fore.Green}█${Fore.Reset} ${Fore.Yellow}█${Fore.Reset} ${Fore.Blue}█${Fore.Reset} ${Fore.Magenta}█${Fore.Reset} ${Fore.Cyan}█${Fore.Reset} ${Fore.White}█${Fore.Reset} ${Fore.Gray}█${Fore.Reset}
  ${Fore.BrightRed}█${Fore.Reset} ${Fore.BrightGreen}█${Fore.Reset} ${Fore.BrightYellow}█${Fore.Reset} ${Fore.BrightBlue}█${Fore.Reset} ${Fore.BrightMagenta}█${Fore.Reset} ${Fore.BrightCyan}█${Fore.Reset} ${Fore.BrightWhite}█${Fore.Reset}
-`;
-    ipInfoText = `
- ${Fore.BrightBlue}IPv4${Fore.Reset}     : ${Fore.Blue}${IPv4}${Fore.Reset}
- ${Fore.BrightBlue}IPv6${Fore.Reset}     : ${Fore.Blue}${IPv6}${Fore.Reset}
- ${Fore.BrightBlue}ISP${Fore.Reset}      : ${Fore.Blue}${ISP}${Fore.Reset}
- ${Fore.BrightBlue}Location${Fore.Reset} : ${Fore.Blue}${ip_location}${Fore.Reset}
 `;
 
     if (settings.allowLoadScript) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
@@ -1208,7 +1169,7 @@ stdIn.addEventListener("keydown", async (event) => {
                 stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
         }
 
-        else if (process.command in aliases) {
+        else if (process.command in aliases && aliases[process.command] in commands) {
             thisProcess = aliases[process.command];
             const result = await commands[aliases[process.command]].func(process);
             if (typeof result === "string") {

@@ -1,3 +1,7 @@
+# 1.8.3
+- Removed `ipinfo` command.
+- Fixed alias not found problem.
+
 # 1.8.2
 - Updated `request` and `stdout.error` functions.
 

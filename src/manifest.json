@@ -60,9 +60,7 @@
         "reboot": "reload",
         "shutdown": "close",
         "js": "javascript",
-        "lzar": "calc",
-        "ip": "ipinfo",
-        "ipconfig": "ipinfo"
+        "lzar": "calc"
     },
 
     "themes": [
