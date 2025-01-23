@@ -1,14 +1,8 @@
+const Reset = "\x1b[0m";
+
 const Fore = {
-    Reset : "\x1b[0m",
-    ColorReset : "\x1b[39m",
+    Reset : "\x1b[39m",
     Bright : "\x1b[1m",
-    Dim : "\x1b[2m",
-    Italic : "\x1b[3m",
-    Underscore : "\x1b[4m",
-    Blink : "\x1b[5m",
-    Reverse : "\x1b[7m",
-    Hidden : "\x1b[8m",
-    CrossedOut : "\x1b[9m",
     Black : "\x1b[30m",
     Red : "\x1b[31m",
     Green : "\x1b[32m",
@@ -25,7 +19,14 @@ const Fore = {
     BrightMagenta : "\x1b[95m",
     BrightCyan : "\x1b[96m",
     BrightWhite : "\x1b[97m",
+    rgb : (r,g,b) => {
+        return `\x1b[38;2;${r};${g};${b}m`;
+    },
+    Bit8 : n => {
+        return `\x1b[38;5;${n}m`;
+    }
 }
+
 const Back = {
     Reset : "\x1b[49m",
     BgBlack : "\x1b[40m",
@@ -44,4 +45,29 @@ const Back = {
     BgBrightMagenta : "\x1b[105m",
     BgBrightCyan : "\x1b[106m",
     BgBrightWhite : "\x1b[107m",
+    rgb : (r,g,b) => {
+        return `\x1b[48;2;${r};${g};${b}m`;
+    },
+    Bit8 : n => {
+        return `\x1b[48;5;${n}m`;
+    }
 }
+
+const Style = {
+    Italic : "\x1b[3m",
+    Underline : "\x1b[4m",
+    Blink : "\x1b[5m",
+    Reverse : "\x1b[7m",
+    Blink : "\x1b[5m",
+    RapidBlink: "\x1b[6m",
+    Hidden : "\x1b[8m",
+    Strike : "\x1b[9m",
+    NotItalic : "\x1b[23m",
+    NotUnderline : "\x1b[24m",
+    NotBlink : "\x1b[25m",
+    NotReverse : "\x1b[27m",
+    NotHidden : "\x1b[28m",
+    NotStrike : "\x1b[29m",
+    Overline : "\x1b[53m",
+    NotOverline : "\x1b[55m",
+};

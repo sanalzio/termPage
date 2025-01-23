@@ -107,15 +107,15 @@ const stdout = {
             stdOut.innerHTML += text + "<br>";
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ?Fore.Reset: "") + "\n").replaceAll("\n", "<br>")
+        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>")
     },
     // write error and add line break to output
     error: function (text, format = true, autoReset = true) {
         if (!format) {
-            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
+            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Fore.Reset + ": " + text + (autoReset ?Fore.Reset: "") + "\n").replaceAll("\n", "<br>");
+        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": " + text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>");
     },
     // write input to output
     write: function (text, format = true, autoReset = false) {
@@ -123,7 +123,7 @@ const stdout = {
             stdOut.innerHTML += text;
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ?Fore.Reset: "")).replaceAll("\n", "<br>");
+        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "")).replaceAll("\n", "<br>");
     },
     // clear console
     clear: function () {

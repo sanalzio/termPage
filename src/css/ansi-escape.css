@@ -33,3 +33,7 @@
 .ansi-bright-magenta-bg { background-color: var(--ansi-bright-magenta-bg); }
 .ansi-bright-cyan-bg { background-color: var(--ansi-bright-cyan-bg); }
 .ansi-bright-white-bg { background-color: var(--ansi-bright-white-bg); }
+
+.ansi-blink { animation: ansi-blink-animation 1s steps(5, start) infinite; }
+.ansi-rapid-blink { animation: ansi-blink-animation 500ms steps(5, start) infinite; }
+@keyframes ansi-blink-animation { to { visibility: hidden; } }

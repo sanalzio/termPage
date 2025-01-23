@@ -40,6 +40,11 @@ var AnsiUp = (function () {
         this.bold = false;
         this.italic = false;
         this.underline = false;
+        this.overline = false;
+        this.blink = false;
+        this.rapidBlink = false;
+        this.hidden = false;
+        this.strike = false;
         this.fg = this.bg = null;
         this._buffer = '';
         this._url_whitelist = { 'http': 1, 'https': 1 };
@@ -286,7 +291,7 @@ var AnsiUp = (function () {
         return blocks.join("");
     };
     AnsiUp.prototype.with_state = function (pkt) {
-        return { bold: this.bold, italic: this.italic, underline: this.underline, fg: this.fg, bg: this.bg, text: pkt.text };
+        return { bold: this.bold, italic: this.italic, underline: this.underline, overline: this.overline, blink: this.blink, rapidBlink: this.rapidBlink, hidden: this.hidden, strike: this.strike, fg: this.fg, bg: this.bg, text: pkt.text };
     };
     AnsiUp.prototype.process_ansi = function (pkt) {
         var sgr_cmds = pkt.text.split(';');
@@ -298,6 +303,11 @@ var AnsiUp = (function () {
                 this.bold = false;
                 this.italic = false;
                 this.underline = false;
+                this.overline = false;
+                this.blink = false;
+                this.rapidBlink = false;
+                this.hidden = false;
+                this.strike = false;
             }
             else if (num === 1) {
                 this.bold = true;
@@ -308,6 +318,21 @@ var AnsiUp = (function () {
             else if (num === 4) {
                 this.underline = true;
             }
+            else if (num === 53) {
+                this.overline = true;
+            }
+            else if (num === 5) {
+                this.blink = true;
+            }
+            else if (num === 6) {
+                this.rapidBlink = true;
+            }
+            else if (num === 8) {
+                this.hidden = true;
+            }
+            else if (num === 9) {
+                this.strike = true;
+            }
             else if (num === 22) {
                 this.bold = false;
             }
@@ -316,6 +341,19 @@ var AnsiUp = (function () {
             }
             else if (num === 24) {
                 this.underline = false;
+            }
+            else if (num === 53) {
+                this.overline = false;
+            }
+            else if (num === 25) {
+                this.blink = false;
+                this.rapidBlink = false;
+            }
+            else if (num === 28) {
+                this.hidden = false;
+            }
+            else if (num === 29) {
+                this.strike = false;
             }
             else if (num === 39) {
                 this.fg = null;
@@ -369,7 +407,7 @@ var AnsiUp = (function () {
         if (txt.length === 0)
             return txt;
         txt = this.escape_txt_for_html(txt);
-        if (!fragment.bold && !fragment.italic && !fragment.underline && fragment.fg === null && fragment.bg === null)
+        if (!fragment.bold && !fragment.italic && !fragment.underline && !fragment.overline && !fragment.blink && !fragment.rapidBlink && !fragment.hidden && !fragment.strike && fragment.fg === null && fragment.bg === null)
             return txt;
         var styles = [];
         var classes = [];
@@ -381,6 +419,16 @@ var AnsiUp = (function () {
             styles.push('font-style:italic');
         if (fragment.underline)
             styles.push('text-decoration:underline');
+        if (fragment.overline)
+            styles.push('text-decoration:overline');
+        if (fragment.blink)
+            classes.push('ansi-blink');
+        if (fragment.rapidBlink)
+            classes.push('ansi-rapid-blink');
+        if (fragment.hidden)
+            styles.push('visibility:hidden');
+        if (fragment.strike)
+            styles.push('text-decoration:line-through');
         if (!this._use_classes) {
             if (fg)
                 styles.push("color:rgb(" + fg.rgb.join(',') + ")");

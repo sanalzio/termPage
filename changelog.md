@@ -1,3 +1,7 @@
+# 1.9.0
+- Added `blink`, `rapid-blink`, `overline`, `hidden` and `strike` support for ansi escape codes.
+- Added new features to `colorama.js` file.
+
 # 1.8.3
 - Removed `ipinfo` command.
 - Fixed alias not found problem.
