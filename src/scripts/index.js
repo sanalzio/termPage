@@ -207,10 +207,12 @@ function parseInput(input) {
     const options = {};
 
     // regexp for match arguments
-    const regex = /(?:[^\s"]+|"[^"]*")+/g;
+    const regex = /(?:[^\s"]+|"[^"]*"|'[^']*')+/g;
+    const simpleRegex = /(?:^|(?<=\s))(?:(?!-)[^\s]+|"[^"]*")/g;
 
     // match arguments
-    const args = input.match(regex).map(arg => arg.replace(/(^"|"$)/g, ''));
+    const args = input.match(regex).map(arg => arg.replace(/(^"|"$|^'|'$)/g, ''));
+    const simpleArgs = input.match(simpleRegex).map(arg => arg.replace(/(^("|')-+([\s\S]+)("|')$)/g, "-$3"));
 
     let i = 0;
     while (i < args.length) {
@@ -237,36 +239,44 @@ function parseInput(input) {
                 } else {
 
                     options[key] = true;
-                    i += 1;
+                    i++;
                 }
             } else {
 
                 options[key] = true;
-                i += 1;
+                i++;
             }
-        } else {
+        } else i++;
+    }
 
-            // if this is a command name
-            if (i===0) i += 1;
+    i = 0;
+    while (i < simpleArgs.length) {
+        const arg = simpleArgs[i];
 
-            else {
-
-                if (_ === "") {
-
-                    _ = arg;
-                } else {
-
-                    _ += " " + arg;
-                }
-
-                i += 1;
-            }
+        // if this is a command name
+        if (i===0) {
+            i++;
+            continue;
         }
+
+        else {
+
+            if (_ === "") {
+
+                _ = arg;
+            } else {
+
+                _ += " " + arg;
+            }
+
+        }
+
+        i++;
     }
 
     const command = argv.shift();
 
-    return { command, argv, options, _ };
+    return { command, argv, simpleArgs, options, _ };
 }
 
 /* Function for parse arguments */
@@ -1142,8 +1152,21 @@ stdIn.addEventListener("keydown", async (event) => {
 
         if(thisProcess !== undefined) {
             stdout.startProcess(thisProcessPrefix);
-            await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
-            stdout.exitProcess();
+            const result = await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
+            if (typeof result === "string") {
+                thisProcessPrefix = result;
+                prefix.innerHTML = thisProcessPrefix;
+                stdout.exitProcess();
+            }
+            else {
+                allowMultiLines = false;
+                prefix.innerHTML = pref;
+                thisProcess = undefined;
+                if (result !== 0)
+                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+
+                stdout.exitProcess();
+            }
             return;
         };
 
@@ -1165,8 +1188,16 @@ stdIn.addEventListener("keydown", async (event) => {
                 stdout.exitProcess();
                 return;
             }
-            else if (result !== 0)
-                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+            else {
+                allowMultiLines = false;
+                prefix.innerHTML = pref;
+                thisProcess = undefined;
+                if (result !== 0)
+                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+
+                stdout.exitProcess();
+                return;
+            }
         }
 
         else if (process.command in aliases && aliases[process.command] in commands) {
@@ -1178,8 +1209,16 @@ stdIn.addEventListener("keydown", async (event) => {
                 stdout.exitProcess();
                 return;
             }
-            else if (result !== 0)
-                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+            else {
+                allowMultiLines = false;
+                prefix.innerHTML = pref;
+                thisProcess = undefined;
+                if (result !== 0)
+                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+
+                stdout.exitProcess();
+                return;
+            }
         }
         
         else {
