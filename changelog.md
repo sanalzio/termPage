@@ -1,3 +1,6 @@
+# 1.10.2
+- Little fix for `open` command (`src/scripts/index.js` ln:`729`)
+
 # 1.10.1
 - Little fix for module system. (`src/scripts/index.js` ln:`999`)
 - Chanaged default tab mode for `search` command to `_blank`.

@@ -726,7 +726,7 @@ const commands = {
         func: async function (process) {
             let url = process._
 
-            if(!url.startsWith("http://") && !url.startsWith("https://"))
+            if(!url.match(/^[\w]*\:\/\//g))
                 url = "https://" + url;
 
             if (process.options.s) {
