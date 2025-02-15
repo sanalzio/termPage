@@ -1,3 +1,6 @@
+# 1.10.3
+- Chanaged default tab mode for `go` command to `_blank`.
+
 # 1.10.2
 - Little fix for `open` command (`src/scripts/index.js` ln:`729`)
 

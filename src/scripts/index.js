@@ -705,22 +705,22 @@ const commands = {
     },
     "go": {
         func: async function (process) {
-            if (process.options.b) {
-                if (!bookmarks[process._]) {
-                    stdout.error("Bookmark not found.");
-                    return 1;
-                }
-                window.open(bookmarks[process._], "_blank");
-            } else {
+            if (process.options.s) {
                 if (!bookmarks[process._]) {
                     stdout.error("Bookmark not found.");
                     return 1;
                 }
                 window.open(bookmarks[process._], "_self");
+            } else {
+                if (!bookmarks[process._]) {
+                    stdout.error("Bookmark not found.");
+                    return 1;
+                }
+                window.open(bookmarks[process._], "_blank");
             }
             return 0;
         },
-        about: `Go bookmark.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ go github\n $ go -b github"`
+        about: `Go bookmark.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ go github\n $ go -b github"`
     },
     "open": {
         func: async function (process) {
