@@ -785,22 +785,22 @@ const commands = {
             let url = encodeURI(process._).replace(encodeURI(process._), settings["search-engine-url"]);
 
             for (const [k, v] of Object.entries(process.options)) {
-                if ("b" == k) continue;
+                if ("s" == k) continue;
 
                 if (manifest.search_engines[k]) {
                     url = encodeURI(process._).replace(encodeURI(process._), manifest.search_engines[k]);
                 }
             }
 
-            if (process.options.b) {
-                window.open(url, "_blank");
-            } else {
+            if (process.options.s) {
                 window.open(url, "_self");
+            } else {
+                window.open(url, "_blank");
             }
 
             return 0;
         },
-        about: `Search in the web.%ALIASES%\nFlags: -b: open in new tab\nExamples:\n $ search sanalzio\n $ s -b sanalzio\n $ s -yt Röportaj Adam`
+        about: `Search in the web.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
     },
     "help": {
         func: async function (process) {
@@ -996,7 +996,7 @@ function loadFavicon() {
 
 function loadModuleDom(moduleName) {
     const moduleScriptElement = document.createElement("script");
-    moduleScriptElement.src = modulesFolderLocation + moduleName.replace(" ", "-") + ".js";
+    moduleScriptElement.src = modulesFolderLocation + moduleName.replaceAll(" ", "-") + ".js";
 
     document.body.appendChild(moduleScriptElement);
 }

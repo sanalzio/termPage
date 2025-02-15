@@ -1,3 +1,7 @@
+# 1.10.1
+- Little fix for module system. (`src/scripts/index.js` ln:`999`)
+- Chanaged default tab mode for `search` command to `_blank`.
+
 # 1.10.0
 - Added `simpleArgs` to `process` api.
 - Fixed std-in system.
