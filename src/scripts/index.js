@@ -1006,26 +1006,30 @@ function loadModuleDom(moduleName) {
 
 /* copy paste like terminal */
 
-// copy to clipboard with just enter key
-window.addEventListener("keydown", async (event) => {
+function initCopyPasteLikeTerminal() {
+    if (settings["enable_terminal_like_copy_paste"]) {
+        // copy to clipboard with just enter key
+        window.addEventListener("keydown", async (event) => {
 
-    if (event.key == "Enter" && window.getSelection().toString()) {
-        event.preventDefault();
+            if (event.key == "Enter" && window.getSelection().toString()) {
+                event.preventDefault();
 
-        await navigator.clipboard.writeText(window.getSelection().toString());
-        window.getSelection().removeAllRanges();
+                await navigator.clipboard.writeText(window.getSelection().toString());
+                window.getSelection().removeAllRanges();
+            }
+
+        });
+
+        // paste with right click
+        mainDiv.addEventListener("contextmenu", async (event) => {
+            event.preventDefault();
+
+            const clipboardText = await navigator.clipboard.readText();
+            stdIn.value = stdIn.value.substring(0, stdIn.selectionStart) + clipboardText + stdIn.value.substring(stdIn.selectionEnd);
+            if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus();
+        });
     }
-
-});
-
-// paste with right click
-mainDiv.addEventListener("contextmenu", async (event) => {
-    event.preventDefault();
-
-    const clipboardText = await navigator.clipboard.readText();
-    stdIn.value = stdIn.value.substring(0, stdIn.selectionStart) + clipboardText + stdIn.value.substring(stdIn.selectionEnd);
-    if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus();
-});
+}
 
 /* copy paste like terminal */
 
@@ -1053,13 +1057,13 @@ mainDiv.addEventListener("keydown", (event) => {
 
 /* home and end buttons */
 
-stdOut.addEventListener("keydown", (event) => {
+window.addEventListener("keydown", (event) => {
 
-    if (event.key == "Home") {
+    if (event.ctrlKey && event.key == "Home") {
         event.preventDefault();
         mainDiv.scrollTop = 0;
     }
-    if (event.key == "End") {
+    if (event.ctrlKey && event.key == "End") {
         event.preventDefault();
         mainDiv.scrollTop = mainDiv.scrollHeight;
     }
@@ -1124,6 +1128,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     if (settings.allowLoadScript) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
         if (!(loadScript === "")) await executeScript(loadScript);
     });
+
+    initCopyPasteLikeTerminal();
 
     form.style.display = "flex";
     mainDiv.scrollTop = mainDiv.scrollHeight;

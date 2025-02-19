@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.10.3",
+    "version": "1.11.0",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -33,6 +33,8 @@
         "timeHours": 12,
 
         "remebmerHistory": false,
+
+        "enable_terminal_like_copy_paste": false,
 
         "color_scheme": "dark"
     },

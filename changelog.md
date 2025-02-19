@@ -1,3 +1,6 @@
+# 1.11.0
+- Added "`enable_terminal_like_copy_paste`" setting system for `manifest.json`.
+
 # 1.10.3
 - Chanaged default tab mode for `go` command to `_blank`.
 
