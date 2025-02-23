@@ -1,3 +1,6 @@
+# check for updates
+cfu --jsconsole
+
 # print system time
 time
 

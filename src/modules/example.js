@@ -1,5 +1,5 @@
 commands["example"] = { // "example" = command name
-    func: async function (process) {
+    func: async function (process, isInput = false) {
         stdout.log("Example command!");
         return 0;
     },

@@ -1,38 +1,38 @@
-.ansi-black-fg { color: var(--ansi-black-fg); }
-.ansi-red-fg { color: var(--ansi-red-fg); }
-.ansi-green-fg { color: var(--ansi-green-fg); }
-.ansi-yellow-fg { color: var(--ansi-yellow-fg); }
-.ansi-blue-fg { color: var(--ansi-blue-fg); }
-.ansi-magenta-fg { color: var(--ansi-magenta-fg); }
-.ansi-cyan-fg { color: var(--ansi-cyan-fg); }
-.ansi-white-fg { color: var(--ansi-white-fg); }
+.ansi-black-fg { color: var(--ansi-black-fg) !important; }
+.ansi-red-fg { color: var(--ansi-red-fg) !important; }
+.ansi-green-fg { color: var(--ansi-green-fg) !important; }
+.ansi-yellow-fg { color: var(--ansi-yellow-fg) !important; }
+.ansi-blue-fg { color: var(--ansi-blue-fg) !important; }
+.ansi-magenta-fg { color: var(--ansi-magenta-fg) !important; }
+.ansi-cyan-fg { color: var(--ansi-cyan-fg) !important; }
+.ansi-white-fg { color: var(--ansi-white-fg) !important; }
 
-.ansi-bright-black-fg { color: var(--ansi-bright-black-fg); }
-.ansi-bright-red-fg { color: var(--ansi-bright-red-fg); }
-.ansi-bright-green-fg { color: var(--ansi-bright-green-fg); }
-.ansi-bright-yellow-fg { color: var(--ansi-bright-yellow-fg); }
-.ansi-bright-blue-fg { color: var(--ansi-bright-blue-fg); }
-.ansi-bright-magenta-fg { color: var(--ansi-bright-magenta-fg); }
-.ansi-bright-cyan-fg { color: var(--ansi-bright-cyan-fg); }
-.ansi-bright-white-fg { color: var(--ansi-bright-white-fg); }
+.ansi-bright-black-fg { color: var(--ansi-bright-black-fg) !important; }
+.ansi-bright-red-fg { color: var(--ansi-bright-red-fg) !important; }
+.ansi-bright-green-fg { color: var(--ansi-bright-green-fg) !important; }
+.ansi-bright-yellow-fg { color: var(--ansi-bright-yellow-fg) !important; }
+.ansi-bright-blue-fg { color: var(--ansi-bright-blue-fg) !important; }
+.ansi-bright-magenta-fg { color: var(--ansi-bright-magenta-fg) !important; }
+.ansi-bright-cyan-fg { color: var(--ansi-bright-cyan-fg) !important; }
+.ansi-bright-white-fg { color: var(--ansi-bright-white-fg) !important; }
 
-.ansi-black-bg { background-color: var(--ansi-black-bg); }
-.ansi-red-bg { background-color: var(--ansi-red-bg); }
-.ansi-green-bg { background-color: var(--ansi-green-bg); }
-.ansi-yellow-bg { background-color: var(--ansi-yellow-bg); }
-.ansi-blue-bg { background-color: var(--ansi-blue-bg); }
-.ansi-magenta-bg { background-color: var(--ansi-magenta-bg); }
-.ansi-cyan-bg { background-color: var(--ansi-cyan-bg); }
-.ansi-white-bg { background-color: var(--ansi-white-bg); }
+.ansi-black-bg { background-color: var(--ansi-black-bg) !important; }
+.ansi-red-bg { background-color: var(--ansi-red-bg) !important; }
+.ansi-green-bg { background-color: var(--ansi-green-bg) !important; }
+.ansi-yellow-bg { background-color: var(--ansi-yellow-bg) !important; }
+.ansi-blue-bg { background-color: var(--ansi-blue-bg) !important; }
+.ansi-magenta-bg { background-color: var(--ansi-magenta-bg) !important; }
+.ansi-cyan-bg { background-color: var(--ansi-cyan-bg) !important; }
+.ansi-white-bg { background-color: var(--ansi-white-bg) !important; }
 
-.ansi-bright-black-bg { background-color: var(--ansi-bright-black-bg); }
-.ansi-bright-red-bg { background-color: var(--ansi-bright-red-bg); }
-.ansi-bright-green-bg { background-color: var(--ansi-bright-green-bg); }
-.ansi-bright-yellow-bg { background-color: var(--ansi-bright-yellow-bg); }
-.ansi-bright-blue-bg { background-color: var(--ansi-bright-blue-bg); }
-.ansi-bright-magenta-bg { background-color: var(--ansi-bright-magenta-bg); }
-.ansi-bright-cyan-bg { background-color: var(--ansi-bright-cyan-bg); }
-.ansi-bright-white-bg { background-color: var(--ansi-bright-white-bg); }
+.ansi-bright-black-bg { background-color: var(--ansi-bright-black-bg) !important; }
+.ansi-bright-red-bg { background-color: var(--ansi-bright-red-bg) !important; }
+.ansi-bright-green-bg { background-color: var(--ansi-bright-green-bg) !important; }
+.ansi-bright-yellow-bg { background-color: var(--ansi-bright-yellow-bg) !important; }
+.ansi-bright-blue-bg { background-color: var(--ansi-bright-blue-bg) !important; }
+.ansi-bright-magenta-bg { background-color: var(--ansi-bright-magenta-bg) !important; }
+.ansi-bright-cyan-bg { background-color: var(--ansi-bright-cyan-bg) !important; }
+.ansi-bright-white-bg { background-color: var(--ansi-bright-white-bg) !important; }
 
 .ansi-blink { animation: ansi-blink-animation 1s steps(5, start) infinite; }
 .ansi-rapid-blink { animation: ansi-blink-animation 500ms steps(5, start) infinite; }

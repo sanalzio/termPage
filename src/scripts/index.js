@@ -39,7 +39,7 @@ let allowMultiLines = true;
 // for eval command
 const defaultLog = console.log;
 
-let thisProcess, thisProcessPrefix;
+let thisProcess, thisProcessPrefix, inProcess;
 
 // interval function for effective time event
 const timeIntervalFunction = () => {
@@ -101,50 +101,73 @@ if(localStorage.history){
 /* Class for stdout file output */
 
 const stdout = {
+
     // write input and add line break to output
     log: function (text, format = true, autoReset = true) {
+
+        const standartOutput = inProcess ? document.querySelector("span.process-out:last-child") : stdOut;
+
         if (!format) {
-            stdOut.innerHTML += text + "<br>";
+            standartOutput.innerHTML += text + "<br>";
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>")
+        standartOutput.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>")
     },
     // write error and add line break to output
     error: function (text, format = true, autoReset = true) {
+
+        const standartOutput = inProcess ? document.querySelector("span.process-out:last-child") : stdOut;
+
         if (!format) {
-            stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
+            standartOutput.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": " + text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>");
+        standartOutput.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": " + text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>");
     },
     // write input to output
     write: function (text, format = true, autoReset = false) {
+
+        const standartOutput = inProcess ? document.querySelector("span.process-out:last-child") : stdOut;
+
         if (!format) {
-            stdOut.innerHTML += text;
+            standartOutput.innerHTML += text;
             return;
         }
-        stdOut.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "")).replaceAll("\n", "<br>");
+        standartOutput.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "")).replaceAll("\n", "<br>");
     },
     // clear console
     clear: function () {
         stdOut.innerHTML = "";
+    },
+    // clear process output
+    clearProcessOut: function () {
+
+        if (!inProcess) return;
+
+        const standartOutput = document.querySelector("span.process-out:last-child");
+
+        standartOutput.innerHTML = "";
     },
     // start command process
     startProcess: function (thisPrefix = prefix.innerHTML) {
 
         stdIn.setAttribute("rows", "1");
 
-        stdOut.innerHTML += thisPrefix +
-            stdIn.value +
-            "<br>";
+        const stdInValue = stdIn.value.startsWith("\n") ? stdIn.value.slice(1) : stdIn.value;
 
-        if(stdIn.value != "" && thisProcess === undefined) history.push(stdIn.value);
+        stdOut.innerHTML += thisPrefix +
+            stdInValue +
+            "<br><span class=\"process-out\"></span>";
+
+        if(stdInValue != "" && thisProcess === undefined) history.push(stdInValue);
         currentHistoryElement = history.length;
 
         if(settings.remebmerHistory)
             localStorage.setItem("history", JSON.stringify(history));
 
         form.style.display = "none";
+
+        inProcess = true;
 
     },
     // exit command process
@@ -153,6 +176,7 @@ const stdout = {
         form.style.display = "flex";
         mainDiv.scrollTop = mainDiv.scrollHeight;
         stdIn.focus();
+        inProcess = false;
     },
 }
 
@@ -958,6 +982,18 @@ stdIn.addEventListener("input", (event) => {
 /* auto focus to #std-in */
 
 
+/* disable focusing to #std-out */
+
+stdOut.addEventListener("focusin", function (event) {
+    event.stopPropagation();
+    event.preventDefault();
+    event.target.blur();
+    stdIn.focus();
+}, true);
+
+/* disable focusing to #std-out */
+
+
 /* funtion for load custom themes from manifest.json */
 
 function applyThemes() {
@@ -996,7 +1032,7 @@ function loadFavicon() {
 
 function loadModuleDom(moduleName) {
     const moduleScriptElement = document.createElement("script");
-    moduleScriptElement.src = modulesFolderLocation + moduleName.replaceAll(" ", "-") + ".js";
+    moduleScriptElement.src = modulesFolderLocation + moduleName + ".js";
 
     document.body.appendChild(moduleScriptElement);
 }
