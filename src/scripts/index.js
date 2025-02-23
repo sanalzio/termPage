@@ -988,7 +988,9 @@ stdOut.addEventListener("focusin", function (event) {
     event.stopPropagation();
     event.preventDefault();
     event.target.blur();
-    stdIn.focus();
+    stdIn.focus({
+        preventScroll: true
+    });
 }, true);
 
 /* disable focusing to #std-out */

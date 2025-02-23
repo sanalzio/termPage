@@ -1,3 +1,6 @@
+# 1.12.1
+- Fixed focus blocking system to elements inside the `#std-out` element.
+
 # 1.12.0
 - Updated `stdout` api for new `stdout.clearProcessOut` function.
 - Removed space replacing for module names system. (`"chack for updates" != "check-for-updates"`)
