@@ -1,3 +1,6 @@
+# 1.12.2
+- Added `beforeExit` system for commands. (Read 370th line of `/src/scripts/index.js`)
+
 # 1.12.1
 - Fixed focus blocking system to elements inside the `#std-out` element.
 

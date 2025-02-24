@@ -367,6 +367,9 @@ const commands = {
             // stdout.log(JSON.stringify(process, null, 4));
             return 0;
         },
+        beforeExit: async function (keyboardInput) { // if used `CTRL + C`: keyboardInput = true else keyboardInput = false
+            stdout.log(keyboardInput ? "Keyboard input." : "Bye.");
+        },
         about: `Test command.%ALIASES%`
     },
     "@echo": {
@@ -1205,6 +1208,10 @@ stdIn.addEventListener("keydown", async (event) => {
             else {
                 allowMultiLines = false;
                 prefix.innerHTML = pref;
+
+                if (commands[thisProcess].beforeExit)
+                    await commands[thisProcess].beforeExit(true);
+
                 thisProcess = undefined;
                 if (result !== 0)
                     stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
@@ -1235,6 +1242,10 @@ stdIn.addEventListener("keydown", async (event) => {
             else {
                 allowMultiLines = false;
                 prefix.innerHTML = pref;
+
+                if (commands[process.command].beforeExit)
+                    await commands[process.command].beforeExit(false);
+
                 thisProcess = undefined;
                 if (result !== 0)
                     stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
@@ -1256,6 +1267,10 @@ stdIn.addEventListener("keydown", async (event) => {
             else {
                 allowMultiLines = false;
                 prefix.innerHTML = pref;
+
+                if (commands[aliases[process.command]].beforeExit)
+                    await commands[aliases[process.command]].beforeExit(false);
+
                 thisProcess = undefined;
                 if (result !== 0)
                     stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
@@ -1308,6 +1323,10 @@ stdIn.addEventListener("keydown", async (event) => {
     else if (event.ctrlKey && event.key == "c" && thisProcess !== undefined && !window.getSelection().toString()) {
         allowMultiLines = false;
         prefix.innerHTML = pref;
+
+        if (commands[thisProcess].beforeExit)
+            await commands[thisProcess].beforeExit(true);
+
         thisProcess = undefined;
         stdout.exitProcess();
     }
