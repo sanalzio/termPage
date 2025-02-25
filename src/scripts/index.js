@@ -1469,10 +1469,12 @@ stdIn.addEventListener("keydown", async (event) => {
 
 stdIn.addEventListener("input", () => {
     if(enableAutoComplete) {
-        if (stdIn.value.trim() < 1) {
+        if (stdIn.value.trim().length < 1) {
             clearAutoComp();
             return;
         }
+
+        if (originalInput) originalInput = undefined;
 
         autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
 

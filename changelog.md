@@ -1,3 +1,6 @@
+# 1.14.1
+- Little fix for auto complete system.
+
 # 1.14.0
 - Little fix for auto complete system.
 - Added asynchronous check for updates system on load.
