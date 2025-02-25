@@ -1058,14 +1058,12 @@ function resetAutoCompList() {
 }
 
 function clearAutoCompList() {
-    if (tempAutoCompList.length > autoCompList.length) return;
-    tempAutoCompList = autoCompList;
+    tempAutoCompList = [...autoCompList];
     autoCompList = new Array();
 }
 
 function restoreAutoCompList() {
-    if (autoCompList.length > tempAutoCompList.length) return;
-    autoCompList = tempAutoCompList;
+    autoCompList = [...tempAutoCompList];
     tempAutoCompList = new Array();
 }
 
@@ -1247,11 +1245,12 @@ stdIn.addEventListener("keydown", async (event) => {
             stdout.startProcess(thisProcessPrefix);
             const result = await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
 
+            clearAutoCompList();
+
             if (typeof result === "string") {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
-                clearAutoCompList();
-                if (commands[thisProcess].autoComplete) autoCompList = commands[thisProcess].autoComplete;
+                if (commands[thisProcess].autoComplete) autoCompList = [...commands[thisProcess].autoComplete];
                 stdout.exitProcess();
             }
             else {
@@ -1287,13 +1286,14 @@ stdIn.addEventListener("keydown", async (event) => {
         if (commands[process.command]) {
             thisProcess = process.command;
             const result = await commands[process.command].func(process);
+
+            clearAutoCompList();
+
             if (typeof result === "string") {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
-
-                clearAutoCompList();
-                if (commands[thisProcess].autoComplete) autoCompList = commands[thisProcess].autoComplete;
+                if (commands[thisProcess].autoComplete) autoCompList = [...commands[thisProcess].autoComplete];
                 clearAutoComp();
                 return;
             }
@@ -1320,13 +1320,14 @@ stdIn.addEventListener("keydown", async (event) => {
         else if (process.command in aliases && aliases[process.command] in commands) {
             thisProcess = aliases[process.command];
             const result = await commands[aliases[process.command]].func(process);
+
+            clearAutoCompList();
+
             if (typeof result === "string") {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
-
-                clearAutoCompList();
-                if (commands[thisProcess].autoComplete) autoCompList = commands[thisProcess].autoComplete;
+                if (commands[thisProcess].autoComplete) autoCompList = [...commands[thisProcess].autoComplete];
                 clearAutoComp();
                 return;
             }
