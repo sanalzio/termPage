@@ -1,3 +1,6 @@
+# 1.12.3
+- Simple DOM system changes.
+
 # 1.12.2
 - Added `beforeExit` system for commands. (Read 370th line of `/src/scripts/index.js`)
 

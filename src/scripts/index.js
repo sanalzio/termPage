@@ -105,7 +105,7 @@ const stdout = {
     // write input and add line break to output
     log: function (text, format = true, autoReset = true) {
 
-        const standartOutput = inProcess ? document.querySelector("span.process-out:last-child") : stdOut;
+        const standartOutput = inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut;
 
         if (!format) {
             standartOutput.innerHTML += text + "<br>";
@@ -116,7 +116,7 @@ const stdout = {
     // write error and add line break to output
     error: function (text, format = true, autoReset = true) {
 
-        const standartOutput = inProcess ? document.querySelector("span.process-out:last-child") : stdOut;
+        const standartOutput = inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut;
 
         if (!format) {
             standartOutput.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
@@ -127,7 +127,7 @@ const stdout = {
     // write input to output
     write: function (text, format = true, autoReset = false) {
 
-        const standartOutput = inProcess ? document.querySelector("span.process-out:last-child") : stdOut;
+        const standartOutput = inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut;
 
         if (!format) {
             standartOutput.innerHTML += text;
@@ -144,7 +144,7 @@ const stdout = {
 
         if (!inProcess) return;
 
-        const standartOutput = document.querySelector("span.process-out:last-child");
+        const standartOutput = stdOut.querySelector("span.process:last-child > span.process-out");
 
         standartOutput.innerHTML = "";
     },
@@ -155,9 +155,11 @@ const stdout = {
 
         const stdInValue = stdIn.value.startsWith("\n") ? stdIn.value.slice(1) : stdIn.value;
 
-        stdOut.innerHTML += thisPrefix +
+        stdOut.innerHTML += "<span class=\"process\">" +
+            "<span class=\"process-command\">" +
+            thisPrefix +
             stdInValue +
-            "<br><span class=\"process-out\"></span>";
+            "</span><br><span class=\"process-out\"></span></span>";
 
         if(stdInValue != "" && thisProcess === undefined) history.push(stdInValue);
         currentHistoryElement = history.length;
