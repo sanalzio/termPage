@@ -30,3 +30,5 @@ commands["tdk"] = {
     },
     about: `TDK dictionary api.%ALIASES%\nExamples:\n $ tdk merhaba`
 };
+
+autoCompList.push("tdk");

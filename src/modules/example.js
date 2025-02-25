@@ -7,3 +7,5 @@ commands["example"] = { // "example" = command name
 };
 
 aliases["ex"] = "example"; // "example" = aliases name
+
+autoCompList.push("example"); // for autocomplete

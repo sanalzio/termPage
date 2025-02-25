@@ -1061,9 +1061,9 @@ function resetAutoCompList() {
 function loadModuleDom(moduleName) {
     const moduleScriptElement = document.createElement("script");
     moduleScriptElement.src = modulesFolderLocation + moduleName + ".js";
-    moduleScriptElement.onload = () => {
-        resetAutoCompList();
-    };
+    //// moduleScriptElement.onload = () => {
+    ////     resetAutoCompList();
+    //// };
 
     document.body.appendChild(moduleScriptElement);
 }

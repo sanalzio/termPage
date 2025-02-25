@@ -50,3 +50,6 @@ commands["checkForUpdates"] = {
 };
 
 aliases["cfu"] = "checkForUpdates";
+
+autoCompList.push("checkForUpdates");
+autoCompList.push("cfu");
