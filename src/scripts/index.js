@@ -1429,7 +1429,9 @@ stdIn.addEventListener("keydown", async (event) => {
 
         if (autoComp.textContent == "") {
 
-            if (autoCompListNow.length == 0 || autoCompListNow.length == 1) return;
+            if (autoCompListNow.length == 0) return;
+
+            if (autoCompListNow.length == 1) autoCompIndex = 0;
 
             if (event.shiftKey) {
                 if (autoCompIndex === 0)
@@ -1473,6 +1475,11 @@ stdIn.addEventListener("input", () => {
         }
 
         autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
+
+        if (autoCompList.includes(stdIn.value)) {
+            autoComp.innerHTML = "";
+            return;
+        }
 
         if (autoCompListNow.length == 0) {
             clearAutoComp();

@@ -1,3 +1,7 @@
+# 1.14.0
+- Little fix for auto complete system.
+- Added asynchronous check for updates system on load.
+
 # 1.13.6
 - Fixed auto complete support for commands. (Again.)
 
