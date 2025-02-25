@@ -1,3 +1,6 @@
+# 1.13.6
+- Fixed auto complete support for commands. (Again.)
+
 # 1.13.5
 - Fixed auto complete support for commands.
 

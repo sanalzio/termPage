@@ -1245,8 +1245,6 @@ stdIn.addEventListener("keydown", async (event) => {
             stdout.startProcess(thisProcessPrefix);
             const result = await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
 
-            clearAutoCompList();
-
             if (typeof result === "string") {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
