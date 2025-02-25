@@ -1,3 +1,6 @@
+# 1.14.2
+- Little fix for `cat` command.
+
 # 1.14.1
 - Little fix for auto complete system.
 

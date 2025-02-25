@@ -414,7 +414,9 @@ const commands = {
             }
 
             // if argument is a url
-            const res = await fetch(process._);
+            const res = await request(process._);
+
+            if (!res) return 1;
 
             // if connection error
             const err = res.status !== 200 ? res.status : null;
@@ -428,7 +430,7 @@ const commands = {
             const data = await res.text();
 
             // log file content
-            stdout.log(data, true);
+            stdout.write(data + (data.endsWith("\n") ? "" : "\n"), false, false);
 
             // exit
             return 0;
@@ -1160,7 +1162,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     form.style.display = "none";
 
-    const manifestRes = await fetch("./manifest.json");
+    const manifestRes = await request("./manifest.json");
     manifest = await manifestRes.json();
 
     settings = manifest.terminal_settings;
