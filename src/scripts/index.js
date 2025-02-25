@@ -378,6 +378,10 @@ const commands = {
         beforeExit: async function (keyboardInput) { // if used `CTRL + C`: keyboardInput = true else keyboardInput = false
             stdout.log(keyboardInput ? "Keyboard input." : "Bye.");
         },
+        autoComplete: [
+            "example1",
+            "example2"
+        ],
         about: `Test command.%ALIASES%`
     },
     "@echo": {
@@ -1059,7 +1063,7 @@ function clearAutoCompList() {
     autoCompList = new Array();
 }
 
-function restoreAutoCompList() { //----------------------------------------------------------------------------------------------------------
+function restoreAutoCompList() {
     if (autoCompList.length > tempAutoCompList.length) return;
     autoCompList = tempAutoCompList;
     tempAutoCompList = new Array();
@@ -1242,10 +1246,12 @@ stdIn.addEventListener("keydown", async (event) => {
         if(thisProcess !== undefined) {
             stdout.startProcess(thisProcessPrefix);
             const result = await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
+
             if (typeof result === "string") {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
                 clearAutoCompList();
+                if (commands[thisProcess].autoComplete) autoCompList = commands[thisProcess].autoComplete;
                 stdout.exitProcess();
             }
             else {
@@ -1287,6 +1293,7 @@ stdIn.addEventListener("keydown", async (event) => {
                 stdout.exitProcess();
 
                 clearAutoCompList();
+                if (commands[thisProcess].autoComplete) autoCompList = commands[thisProcess].autoComplete;
                 clearAutoComp();
                 return;
             }
@@ -1319,6 +1326,7 @@ stdIn.addEventListener("keydown", async (event) => {
                 stdout.exitProcess();
 
                 clearAutoCompList();
+                if (commands[thisProcess].autoComplete) autoCompList = commands[thisProcess].autoComplete;
                 clearAutoComp();
                 return;
             }

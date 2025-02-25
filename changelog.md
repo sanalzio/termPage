@@ -1,3 +1,6 @@
+# 1.13.4
+- Added auto complete support for commands. (Read 381th line of `./src/scripts/index.js` for example.)
+
 # 1.13.3
 - Little fix for auto complete system. (Sorry again.)
 
