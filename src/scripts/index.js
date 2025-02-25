@@ -43,7 +43,7 @@ const defaultLog = console.log;
 let thisProcess, thisProcessPrefix, inProcess;
 
 // for autocomplete
-let tempAutoCompList, autoCompList, autoCompListNow, autoCompIndex, originalInput;
+let tempAutoCompList = new Array(), autoCompList = new Array(), autoCompListNow, autoCompIndex, originalInput;
 let enableAutoComplete = true;
 
 
@@ -1054,11 +1054,13 @@ function resetAutoCompList() {
 }
 
 function clearAutoCompList() {
+    if (tempAutoCompList.length > autoCompList.length) return;
     tempAutoCompList = autoCompList;
     autoCompList = new Array();
 }
 
-function restoreAutoCompList() {
+function restoreAutoCompList() { //----------------------------------------------------------------------------------------------------------
+    if (autoCompList.length > tempAutoCompList.length) return;
     autoCompList = tempAutoCompList;
     tempAutoCompList = new Array();
 }
