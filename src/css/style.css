@@ -70,6 +70,10 @@ body {
     z-index: 200;
 }
 
+#std-in-container, #std-in {
+    width: 100%;
+}
+
 #outo-complete{
     position: absolute;
     display: inline-block;

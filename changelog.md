@@ -1,3 +1,6 @@
+# 1.13.2
+- Little fix for auto complete system. (Sorry.)
+
 # 1.13.1
 - Little fix for auto complete system.
 

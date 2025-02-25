@@ -43,7 +43,7 @@ const defaultLog = console.log;
 let thisProcess, thisProcessPrefix, inProcess;
 
 // for autocomplete
-let autoCompList, autoCompListNow, autoCompIndex, originalInput;
+let tempAutoCompList, autoCompList, autoCompListNow, autoCompIndex, originalInput;
 let enableAutoComplete = true;
 
 
@@ -1053,6 +1053,16 @@ function resetAutoCompList() {
     autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
 }
 
+function clearAutoCompList() {
+    tempAutoCompList = autoCompList;
+    autoCompList = new Array();
+}
+
+function restoreAutoCompList() {
+    autoCompList = tempAutoCompList;
+    tempAutoCompList = new Array();
+}
+
 /* auto complete functions */
 
 
@@ -1233,6 +1243,7 @@ stdIn.addEventListener("keydown", async (event) => {
             if (typeof result === "string") {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
+                clearAutoCompList();
                 stdout.exitProcess();
             }
             else {
@@ -1241,6 +1252,8 @@ stdIn.addEventListener("keydown", async (event) => {
 
                 if (commands[thisProcess].beforeExit)
                     await commands[thisProcess].beforeExit(true);
+
+                restoreAutoCompList();
 
                 thisProcess = undefined;
                 if (result !== 0)
@@ -1271,6 +1284,7 @@ stdIn.addEventListener("keydown", async (event) => {
                 prefix.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
 
+                clearAutoCompList();
                 clearAutoComp();
                 return;
             }
@@ -1280,6 +1294,8 @@ stdIn.addEventListener("keydown", async (event) => {
 
                 if (commands[process.command].beforeExit)
                     await commands[process.command].beforeExit(false);
+
+                restoreAutoCompList();
 
                 thisProcess = undefined;
                 if (result !== 0)
@@ -1300,6 +1316,7 @@ stdIn.addEventListener("keydown", async (event) => {
                 prefix.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
 
+                clearAutoCompList();
                 clearAutoComp();
                 return;
             }
@@ -1309,6 +1326,8 @@ stdIn.addEventListener("keydown", async (event) => {
 
                 if (commands[aliases[process.command]].beforeExit)
                     await commands[aliases[process.command]].beforeExit(false);
+
+                restoreAutoCompList();
 
                 thisProcess = undefined;
                 if (result !== 0)
@@ -1373,6 +1392,8 @@ stdIn.addEventListener("keydown", async (event) => {
 
         if (commands[thisProcess].beforeExit)
             await commands[thisProcess].beforeExit(true);
+
+        restoreAutoCompList();
 
         thisProcess = undefined;
         stdout.exitProcess();
