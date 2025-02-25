@@ -11,6 +11,7 @@ const prefix = document.getElementById("prefix");
 const form = document.getElementById("form");
 const mainDiv = document.getElementById("main");
 const stdIn = document.getElementById("std-in");
+const autoComp = document.getElementById("outo-complete");
 const stdOut = document.getElementById("std-out");
 const color_scheme = document.getElementById("color_scheme");
 
@@ -40,6 +41,11 @@ let allowMultiLines = true;
 const defaultLog = console.log;
 
 let thisProcess, thisProcessPrefix, inProcess;
+
+// for autocomplete
+let autoCompList, autoCompListNow, autoCompIndex, originalInput;
+let enableAutoComplete = true;
+
 
 // interval function for effective time event
 const timeIntervalFunction = () => {
@@ -1035,11 +1041,29 @@ function loadFavicon() {
 /* funtion for load favicon */
 
 
+/* auto complete functions */
+
+function clearAutoComp() {
+    autoCompIndex = 0;
+    autoComp.innerHTML = "";
+    autoCompListNow = new Array();
+}
+
+function resetAutoCompList() {
+    autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
+}
+
+/* auto complete functions */
+
+
 /* function for load module script to dom */
 
 function loadModuleDom(moduleName) {
     const moduleScriptElement = document.createElement("script");
     moduleScriptElement.src = modulesFolderLocation + moduleName + ".js";
+    moduleScriptElement.onload = () => {
+        resetAutoCompList();
+    };
 
     document.body.appendChild(moduleScriptElement);
 }
@@ -1135,6 +1159,8 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     loadFavicon();
 
+    enableAutoComplete = settings["enable-auto-complete"];
+
     for (let i = 0; i < manifest.modules.length; i++) {
         const moduleName = manifest.modules[i];
         loadModuleDom(moduleName);
@@ -1155,9 +1181,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 
-    rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;"
+    rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;";
 
     nameChange();
+
+    autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
 
     aboutContent = `
  ${Fore.BrightBlue}version${Fore.Reset}: ${Fore.Blue}${manifest.version}${Fore.Reset}
@@ -1220,6 +1248,8 @@ stdIn.addEventListener("keydown", async (event) => {
 
                 stdout.exitProcess();
             }
+
+            clearAutoComp();
             return;
         };
 
@@ -1227,6 +1257,7 @@ stdIn.addEventListener("keydown", async (event) => {
 
         if(stdIn.value === "" || stdIn.value.startsWith("#")) {
             stdout.exitProcess();
+            clearAutoComp();
             return;
         };
 
@@ -1239,6 +1270,8 @@ stdIn.addEventListener("keydown", async (event) => {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
+
+                clearAutoComp();
                 return;
             }
             else {
@@ -1253,6 +1286,8 @@ stdIn.addEventListener("keydown", async (event) => {
                     stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
 
                 stdout.exitProcess();
+
+                clearAutoComp();
                 return;
             }
         }
@@ -1264,6 +1299,8 @@ stdIn.addEventListener("keydown", async (event) => {
                 thisProcessPrefix = result;
                 prefix.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
+
+                clearAutoComp();
                 return;
             }
             else {
@@ -1278,6 +1315,8 @@ stdIn.addEventListener("keydown", async (event) => {
                     stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
 
                 stdout.exitProcess();
+
+                clearAutoComp();
                 return;
             }
         }
@@ -1289,6 +1328,8 @@ stdIn.addEventListener("keydown", async (event) => {
         thisProcess = undefined;
 
         stdout.exitProcess();
+
+        clearAutoComp();
 
     }
 
@@ -1302,6 +1343,8 @@ stdIn.addEventListener("keydown", async (event) => {
             
             if(currentHistoryElement > 1)
                 currentHistoryElement -= 1;
+
+            clearAutoComp();
             
         }
 
@@ -1318,6 +1361,8 @@ stdIn.addEventListener("keydown", async (event) => {
             if(currentHistoryElement < history.length)
                 currentHistoryElement += 1;
 
+            clearAutoComp();
+
         }
 
     }
@@ -1331,6 +1376,8 @@ stdIn.addEventListener("keydown", async (event) => {
 
         thisProcess = undefined;
         stdout.exitProcess();
+
+        clearAutoComp();
     }
 
     else if (
@@ -1346,6 +1393,65 @@ stdIn.addEventListener("keydown", async (event) => {
     else if (allowMultiLines && event.shiftKey && event.key == "Enter")
         stdIn.setAttribute("rows", (Number(stdIn.getAttribute("rows")) + 1).toString());
 
+    else if (event.key == "Tab") {
+
+        event.preventDefault();
+
+        if (autoComp.textContent == "") {
+
+            if (autoCompListNow.length == 0 || autoCompListNow.length == 1) return;
+
+            if (event.shiftKey) {
+                if (autoCompIndex === 0)
+                    autoCompIndex = autoCompListNow.length -1;
+                else
+                    autoCompIndex--;
+            } else {
+                if (autoCompIndex === autoCompListNow.length -1)
+                    autoCompIndex = 0;
+                else
+                    autoCompIndex++;
+            }
+        }
+
+        if (!originalInput) {
+            originalInput = stdIn.value;
+        }
+        stdIn.value = autoCompListNow[autoCompIndex];
+        autoComp.innerHTML = "";
+    }
+
+    else if (event.key == "Escape") {
+        if (autoCompListNow.length == 0) return;
+
+        if (originalInput) {
+            stdIn.value = originalInput;
+            originalInput = undefined;
+        }
+
+        autoCompIndex = 0;
+        autoComp.innerHTML = "";
+    }
+
+});
+
+stdIn.addEventListener("input", () => {
+    if(enableAutoComplete) {
+        if (stdIn.value.trim() < 1) {
+            clearAutoComp();
+            return;
+        }
+
+        autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
+
+        if (autoCompListNow.length == 0) {
+            clearAutoComp();
+            return;
+        }
+
+        autoCompIndex = 0;
+        autoComp.innerHTML = autoCompListNow[autoCompIndex];
+    }
 });
 
 /* input button events */

@@ -67,6 +67,28 @@ body {
     flex-grow: 1;
     overflow: hidden;
     text-wrap: nowrap;
+    z-index: 200;
+}
+
+#outo-complete{
+    position: absolute;
+    display: inline-block;
+    width: auto;
+    border: none;
+    padding: 0 !important;
+    background-color: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    resize: none;
+    outline: none;
+    cursor: default;
+    flex-grow: 1;
+    overflow: hidden;
+    text-wrap: nowrap;
+    z-index: 100;
+
+    opacity: 0.3;
 }
 
 #std-out {

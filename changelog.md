@@ -1,3 +1,6 @@
+# 1.13.0
+- Added auto complete system.
+
 # 1.12.3
 - Simple DOM system changes.
 
