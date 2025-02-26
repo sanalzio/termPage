@@ -1,3 +1,9 @@
+# 1.15.0
+- All option names casing in `manifest.json` file changed to `snake_case`.
+- Added <ins>**one line comment**</ins> (`// ...`) support for `manifest.json`.
+- Added scrollbar.
+- Added new 2 wallpaper.
+
 # 1.14.2
 - Little fix for `cat` command.
 

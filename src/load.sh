@@ -2,7 +2,7 @@
 time
 
 # print empty line
-echo " "
+echo &nbsp;
 
 # weather
 wttr.in

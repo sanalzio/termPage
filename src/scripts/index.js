@@ -170,7 +170,7 @@ const stdout = {
         if(stdInValue != "" && thisProcess === undefined) history.push(stdInValue);
         currentHistoryElement = history.length;
 
-        if(settings.remebmerHistory)
+        if(settings.remebmer_history)
             localStorage.setItem("history", JSON.stringify(history));
 
         form.style.display = "none";
@@ -418,7 +418,7 @@ const commands = {
 
             if (!res) return 1;
 
-            // if connection error
+            // if connection returned error
             const err = res.status !== 200 ? res.status : null;
             if (err) {
                 // log error code
@@ -492,11 +492,25 @@ const commands = {
     },
     "bash": {
         func: async function (process) {
-            await fetch(process._).then(res => res.text()).then(async (scriptContent) => {
-                if (!(scriptContent === ""))
-                    // execute script
-                    await executeScript(scriptContent);
-            });
+
+            // if argument is a url
+            const res = await request(process._);
+
+            if (!res) return 1;
+
+            // if connection error
+            const err = res.status !== 200 ? res.status : null;
+            if (err) {
+                // log error code
+                stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
+                // exit with error code
+                return err;
+            }
+
+            const scriptContent = await res.text();
+
+            await executeScript(scriptContent);
+
             return 0;
         },
         about: `Run script.%ALIASES%\nExample:\n $ bash ./file.sh\n $ bash https://example.com/script.sh`
@@ -573,7 +587,7 @@ const commands = {
             }
 
             // if used with --24h or default time format is 24 hours
-            if (process.options["24h"] || (!process.options["12h"] && settings.timeHours == 24)) {
+            if (process.options["24h"] || (!process.options["12h"] && settings.time_hours == 24)) {
 
                 const time = new Date().toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" });
                 stdout.log("<span class=\"time24\">" + time + "</span>", false);
@@ -581,7 +595,7 @@ const commands = {
             }
 
             // if used with --24h or default time format is 24 hours
-            else if (process.options["12h"] || (!process.options["24h"] && settings.timeHours == 12)) {
+            else if (process.options["12h"] || (!process.options["24h"] && settings.time_hours == 12)) {
 
                 const time = new Date().toLocaleTimeString([], { hour12: true, hour: "2-digit", minute: "2-digit", second: "2-digit" });
                 stdout.log("<span class=\"time\">" + time + "</span>", false);
@@ -823,7 +837,7 @@ const commands = {
                 return 1;
             }
 
-            let url = encodeURI(process._).replace(encodeURI(process._), settings["search-engine-url"]);
+            let url = encodeURI(process._).replace(encodeURI(process._), settings["search_engine_url"]);
 
             for (const [k, v] of Object.entries(process.options)) {
                 if ("s" == k) continue;
@@ -842,6 +856,32 @@ const commands = {
             return 0;
         },
         about: `Search in the web.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
+    },
+    "man": {
+        func: async function (process) {
+
+            // if argument is a url
+            const res = await request("./manuals/" + process._.toLowerCase() + ".txt");
+
+            if (!res) return 1;
+
+            // if connection returned error
+            const err = res.status !== 200 ? res.status : null;
+            if (err) {
+                // log error code
+                stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
+                // exit with error code
+                return err;
+            }
+
+            const data = await res.text();
+
+            // log file content
+            stdout.write(data + (data.endsWith("\n") ? "" : "\n"), false, false);
+
+            // exit
+            return 0;
+        }
     },
     "help": {
         func: async function (process) {
@@ -1013,6 +1053,29 @@ stdOut.addEventListener("focusin", function (event) {
 /* disable focusing to #std-out */
 
 
+/* add command function */
+
+function addCommand(cmd, func, about, cmdAliases = [], autoComplete = undefined) {
+    commands[cmd] = new Object();
+    commands[cmd].func = func;
+    commands[cmd].about = about;
+
+    autoCompList.push(cmd);
+
+    if (cmdAliases.length > 0) {
+        for (let i = 0; i < cmdAliases.length; i++) {
+            const alias = cmdAliases[i];
+            aliases[alias] = cmd;
+            autoCompList.push(alias);
+        }
+    }
+
+    if (autoComplete) commands[cmd].autoComplete = autoComplete;
+}
+
+/* add command function */
+
+
 /* funtion for load custom themes from manifest.json */
 
 function applyThemes() {
@@ -1163,7 +1226,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     form.style.display = "none";
 
     const manifestRes = await request("./manifest.json");
-    manifest = await manifestRes.json();
+    const manifestTextData = await manifestRes.text();
+    manifest = JSON.parse(manifestTextData.replace(/(?<!:)\/\/(?!\/).*/gm, ""));
 
     settings = manifest.terminal_settings;
     aliases = {...manifest.aliases, ...aliases};
@@ -1175,14 +1239,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     loadFavicon();
 
-    enableAutoComplete = settings["enable-auto-complete"];
+    enableAutoComplete = settings["enable_auto_complete"];
 
     for (let i = 0; i < manifest.modules.length; i++) {
         const moduleName = manifest.modules[i];
         loadModuleDom(moduleName);
     }
 
-    if (settings.effectiveTime) {
+    if (settings.effective_time) {
         timeInterval = setInterval(() => {
             if (times)
                 for (let i = 0; i < times.length; i++) {
@@ -1206,13 +1270,13 @@ document.addEventListener('DOMContentLoaded', async function() {
     aboutContent = `
  ${Fore.BrightBlue}version${Fore.Reset}: ${Fore.Blue}${manifest.version}${Fore.Reset}
  ${Fore.BrightBlue}font family${Fore.Reset}: ${Fore.Blue}${window.getComputedStyle(mainDiv).fontFamily}${Fore.Reset}
- ${Fore.BrightBlue}search engine${Fore.Reset}: ${Fore.Blue}${settings["search-engine-url"].split("/")[2]}${Fore.Reset}
+ ${Fore.BrightBlue}search engine${Fore.Reset}: ${Fore.Blue}${settings["search_engine_url"].split("/")[2]}${Fore.Reset}
 
  ${Fore.Red}█${Fore.Reset} ${Fore.Green}█${Fore.Reset} ${Fore.Yellow}█${Fore.Reset} ${Fore.Blue}█${Fore.Reset} ${Fore.Magenta}█${Fore.Reset} ${Fore.Cyan}█${Fore.Reset} ${Fore.White}█${Fore.Reset} ${Fore.Gray}█${Fore.Reset}
  ${Fore.BrightRed}█${Fore.Reset} ${Fore.BrightGreen}█${Fore.Reset} ${Fore.BrightYellow}█${Fore.Reset} ${Fore.BrightBlue}█${Fore.Reset} ${Fore.BrightMagenta}█${Fore.Reset} ${Fore.BrightCyan}█${Fore.Reset} ${Fore.BrightWhite}█${Fore.Reset}
 `;
 
-    if (settings.allowLoadScript) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
+    if (settings.allow_load_script) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
         if (!(loadScript === "")) await executeScript(loadScript);
     });
 

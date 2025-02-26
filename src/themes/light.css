@@ -9,6 +9,7 @@
     --html-text: #212121;
     --html-selection: #212121;
     --html-selection-text: #dddddd;
+    --scrollbar-thumb-color: rgba(33, 33, 33, 0.7);
 
     --ansi-black-fg: #212121; /* matches text color */
     --ansi-red-fg: #ef5959; /* keep pastel red for contrast */

@@ -1,0 +1,17 @@
+#main {
+    overflow-x: hidden;
+    padding-right: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: transparent !important;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent !important;
+}

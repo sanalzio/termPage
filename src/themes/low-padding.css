@@ -4,5 +4,16 @@
 }
 
 body{
-    padding: 0.5rem;
+    padding: var(--scrollbar-width) 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+#main{
+    padding-left: var(--scrollbar-width);
+    width: var(--main-width);
+    box-sizing: border-box !important;
+    height: var(--main-height);
+    max-width: var(--main-width);
+    box-sizing: border-box !important;
 }

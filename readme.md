@@ -35,46 +35,54 @@ Edit `terminal_settings` dictionary in `manifest.json` like this:
         "tab_favicon": null,
 
         // user name for command preffix
-        "user": "sanalzio",
+        "user": "username",
 
         // host name for command preffix
          // types: null or string:
           // null for detect browser type auto
-        "host": "brave", // null,
+        "host": null, // "chrome"
 
         // search engine for "seach" command
          // replace "$&" with query required place
-        "search-engine-url": "https://duckduckgo.com/?q=$&",
+        "search_engine_url": "https://duckduckgo.com/?q=$&",
 
         // location for "wttr.in" command
         "location": "Ankara",
-        /*
-         * "Ankara"              # city name
-         * "~Eiffel+tower"       # any location (+ for spaces)
-         * "Москва"              # Unicode name of any location in any language
-         * "esb"                 # airport code (3 letters)
-         * "@stackoverflow.com"  # domain name
-         * "06800"               # area codes
-         * "-78.46,106.79"       # GPS coordinates
-         */
+        //  * "Ankara"              # city name
+        //  * "~Eiffel+tower"       # any location (+ for spaces)
+        //  * "Москва"              # Unicode name of any location in any language
+        //  * "esb"                 # airport code (3 letters)
+        //  * "@stackoverflow.com"  # domain name
+        //  * "06800"               # area codes
+        //  * "-78.46,106.79"       # GPS coordinates
+
 
         // language for "wttr.in" command
         "language": "en",
 
         // enable execute "load.sh" on load
-        "allowLoadScript": false,
+        "allow_load_script": false,
 
         // enable set effective time on load
-        "effectiveTime": false,
+        "effective_time": false,
 
         // set default clock format
          // 12 or 24 only
           // 12 = 11:59 AM
           // 24 = 23:59
-        "timeHours": 12,
+        "time_hours": 12,
 
         // save history to localStorge and remeber old history
-        "remebmerHistory": false,
+        "remebmer_history": false,
+
+        // enable terminal like copy/paste system
+        "enable_terminal_like_copy_paste": false,
+
+        // enable auto complete system
+        "enable_auto_complete": true,
+
+        // check for updates on load (needs "modules/check-for-updates.js" file)
+        "check_for_updates_on_load": true,
 
         // terminal color theme
         "color_scheme": "dark"
@@ -150,6 +158,29 @@ Optional theme `.css` files. Edit `themes` dictionary in `manifest.json` like th
 
     > [!IMPORTANT]
     > Add `../` to background file path.
+
+## How to add custom command
+
+1) Create like `new-file.js` named file in `src/modules/` folder.
+
+    ```js
+    addCommand(
+        "example", // command name
+        async function (process, isInput = false) {  // command operations
+            stdout.log("Example command!");
+            return 0;
+        },
+        ["ex",] // command aliases
+    );
+    ```
+2) Add `"new-file.js"` to `manifest.modules`
+
+    ```json
+    "modules": [
+        ...
+        "new-file.js"
+    ]
+    ```
 
 ## License
 

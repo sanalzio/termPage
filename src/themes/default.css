@@ -3,4 +3,7 @@
     --main-height: 80%;
     --main-font-family: "Fira Code", consolas, monospace;
     --main-font-size: medium;
+    --scrollbar-width: 28px;
+    --scrollbar-width-2x: 56px;
+    --scrollbar-thumb-width: 12px;
 }

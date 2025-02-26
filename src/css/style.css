@@ -22,29 +22,31 @@ body {
 #main {
     display: none;
     flex: 1;
-    width: var(--main-width);
+    width: calc(var(--main-width) + var(--scrollbar-width-2x));
+    box-sizing: content-box !important;
     height: var(--main-height);
-    max-width: var(--main-width);
+    padding-left: var(--scrollbar-width);
+    max-width: calc(var(--main-width) + var(--scrollbar-width-2x));
     max-height: var(--main-height);
     font-family: var(--main-font-family);
     font-size: var(--main-font-size);
     white-space: nowrap;
     overflow-y: auto;
-    overflow-x: hidden;
+    overflow-x: auto;
+    scrollbar-gutter: stable;
     overflow-wrap: break-word;
 }
 
 ::-webkit-scrollbar {
-    width: 0 !important;
-    height: 0 !important;
+    width: var(--scrollbar-width);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: transparent !important;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent !important;
+    border: var(--scrollbar-thumb-width) solid transparent;
+    background-clip: padding-box;
+    border-radius: 9999px;
+    background-color: var(--scrollbar-thumb-color);
+    backdrop-filter: opacity(0.3);
 }
 
 #form {
