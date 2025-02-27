@@ -1576,6 +1576,7 @@ stdIn.addEventListener("keydown", async (event) => {
     }
 
     else if (event.key == "l" && event.ctrlKey) {
+        event.preventDefault();
         stdout.clear();
     }
 
