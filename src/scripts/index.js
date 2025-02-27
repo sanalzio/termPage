@@ -1,7 +1,7 @@
 /* constant values */
 
 // array for command history
-let history = [];
+let history = [], tempHistory = [];
 
 let currentHistoryElement = 0;
 
@@ -167,11 +167,14 @@ const stdout = {
             stdInValue +
             "</span><br><span class=\"process-out\"></span></span>";
 
-        if(stdInValue != "" && thisProcess === undefined) history.push(stdInValue);
-        currentHistoryElement = history.length;
+        if(stdInValue != "") { // && thisProcess === undefined
 
-        if(settings.remebmer_history)
-            localStorage.setItem("history", JSON.stringify(history));
+            history.push(stdInValue);
+            currentHistoryElement = history.length;
+
+            if(settings.remebmer_history)
+                localStorage.setItem("history", JSON.stringify(history));
+        }
 
         form.style.display = "none";
 
@@ -477,7 +480,7 @@ const commands = {
             stdout.clear();
 
             // clear history
-            if (process.options.all) {
+            if (process.options.all || process.options.a) {
                 history = [];
                 currentHistoryElement = 0;
 
@@ -857,32 +860,6 @@ const commands = {
         },
         about: `Search in the web.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
     },
-    "man": {
-        func: async function (process) {
-
-            // if argument is a url
-            const res = await request("./manuals/" + process._.toLowerCase() + ".txt");
-
-            if (!res) return 1;
-
-            // if connection returned error
-            const err = res.status !== 200 ? res.status : null;
-            if (err) {
-                // log error code
-                stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
-                // exit with error code
-                return err;
-            }
-
-            const data = await res.text();
-
-            // log file content
-            stdout.write(data + (data.endsWith("\n") ? "" : "\n"), false, false);
-
-            // exit
-            return 0;
-        }
-    },
     "help": {
         func: async function (process) {
             if (process._) {
@@ -1112,6 +1089,32 @@ function loadFavicon() {
 
 /* auto complete functions */
 
+function autoComplete() {
+    if(enableAutoComplete) {
+        if (stdIn.value.trim().length < 1) {
+            clearAutoComp();
+            return;
+        }
+
+        if (originalInput) originalInput = undefined;
+
+        autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
+
+        if (autoCompList.includes(stdIn.value)) {
+            autoComp.innerHTML = "";
+            return;
+        }
+
+        if (autoCompListNow.length == 0) {
+            clearAutoComp();
+            return;
+        }
+
+        autoCompIndex = 0;
+        autoComp.innerHTML = autoCompListNow[autoCompIndex];
+    }
+}
+
 function clearAutoComp() {
     autoCompIndex = 0;
     autoComp.innerHTML = "";
@@ -1133,6 +1136,34 @@ function restoreAutoCompList() {
 }
 
 /* auto complete functions */
+
+
+/* process history system functions */
+
+function backupHistory(commandObject) {
+    tempHistory = [...history];
+
+    if (!commandObject.history) {
+        commandObject.history = new Array();
+        currentHistoryElement = 0;
+        history = new Array();
+    } else {
+        history = [...commandObject.history];
+        currentHistoryElement = history.length;
+    }
+
+}
+
+function restoreHistory(commandObject) {
+
+    commandObject.history = [...history];
+
+    history = [...tempHistory];
+    tempHistory = new Array();
+    currentHistoryElement = history.length;
+}
+
+/* process history system functions */
 
 
 /* function for load module script to dom */
@@ -1226,8 +1257,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     form.style.display = "none";
 
     const manifestRes = await request("./manifest.json");
-    const manifestTextData = await manifestRes.text();
-    manifest = JSON.parse(manifestTextData.replace(/(?<!:)\/\/(?!\/).*/gm, ""));
+    manifest = await manifestRes.json();
 
     settings = manifest.terminal_settings;
     aliases = {...manifest.aliases, ...aliases};
@@ -1325,6 +1355,7 @@ stdIn.addEventListener("keydown", async (event) => {
                     await commands[thisProcess].beforeExit(true);
 
                 restoreAutoCompList();
+                restoreHistory(commands[thisProcess]);
 
                 thisProcess = undefined;
                 if (result !== 0)
@@ -1352,6 +1383,7 @@ stdIn.addEventListener("keydown", async (event) => {
             const result = await commands[process.command].func(process);
 
             clearAutoCompList();
+            backupHistory(commands[process.command]);
 
             if (typeof result === "string") {
                 thisProcessPrefix = result;
@@ -1369,6 +1401,7 @@ stdIn.addEventListener("keydown", async (event) => {
                     await commands[process.command].beforeExit(false);
 
                 restoreAutoCompList();
+                restoreHistory(commands[process.command]);
 
                 thisProcess = undefined;
                 if (result !== 0)
@@ -1386,6 +1419,7 @@ stdIn.addEventListener("keydown", async (event) => {
             const result = await commands[aliases[process.command]].func(process);
 
             clearAutoCompList();
+            backupHistory(commands[aliases[process.command]]);
 
             if (typeof result === "string") {
                 thisProcessPrefix = result;
@@ -1403,6 +1437,7 @@ stdIn.addEventListener("keydown", async (event) => {
                     await commands[aliases[process.command]].beforeExit(false);
 
                 restoreAutoCompList();
+                restoreHistory(commands[aliases[process.command]]);
 
                 thisProcess = undefined;
                 if (result !== 0)
@@ -1427,35 +1462,37 @@ stdIn.addEventListener("keydown", async (event) => {
 
     }
 
-    else if (!thisProcess && event.key == "ArrowUp" && !(event.ctrlKey && event.shiftKey)) {
+    else if (
+        event.key == "ArrowUp" &&
+        !(event.ctrlKey && event.shiftKey)
+    ) {
 
         event.preventDefault();
 
         if (currentHistoryElement > 0) {
 
-            stdIn.value = history[currentHistoryElement -1];
-            
-            if(currentHistoryElement > 1)
-                currentHistoryElement -= 1;
+            stdIn.value = history[--currentHistoryElement];
 
             clearAutoComp();
-            
+            autoComplete();
+
         }
 
     }
 
-    else if (!thisProcess && event.key == "ArrowDown" && !(event.ctrlKey && event.shiftKey)) {
+    else if (
+        event.key == "ArrowDown" &&
+        !(event.ctrlKey && event.shiftKey)
+    ) {
 
         event.preventDefault();
 
-        if (currentHistoryElement - 1 < history.length) {
+        if (currentHistoryElement < history.length) {
 
-            stdIn.value = history[currentHistoryElement] ?? "";
-            
-            if(currentHistoryElement < history.length)
-                currentHistoryElement += 1;
+            stdIn.value = history[++currentHistoryElement] ?? "";
 
             clearAutoComp();
+            autoComplete();
 
         }
 
@@ -1469,6 +1506,7 @@ stdIn.addEventListener("keydown", async (event) => {
             await commands[thisProcess].beforeExit(true);
 
         restoreAutoCompList();
+        restoreHistory(commands[thisProcess]);
 
         thisProcess = undefined;
         stdout.exitProcess();
@@ -1520,6 +1558,7 @@ stdIn.addEventListener("keydown", async (event) => {
     }
 
     else if (event.key == "Escape") {
+
         if (autoCompListNow.length == 0) return;
 
         if (originalInput) {
@@ -1531,32 +1570,13 @@ stdIn.addEventListener("keydown", async (event) => {
         autoComp.innerHTML = "";
     }
 
-});
+    else if (event.key == "Backspace") {
 
-stdIn.addEventListener("input", () => {
-    if(enableAutoComplete) {
-        if (stdIn.value.trim().length < 1) {
-            clearAutoComp();
-            return;
-        }
-
-        if (originalInput) originalInput = undefined;
-
-        autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
-
-        if (autoCompList.includes(stdIn.value)) {
-            autoComp.innerHTML = "";
-            return;
-        }
-
-        if (autoCompListNow.length == 0) {
-            clearAutoComp();
-            return;
-        }
-
-        autoCompIndex = 0;
-        autoComp.innerHTML = autoCompListNow[autoCompIndex];
+        currentHistoryElement = history.length;
     }
+
 });
+
+stdIn.addEventListener("input", autoComplete);
 
 /* input button events */

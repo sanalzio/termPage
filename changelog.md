@@ -1,3 +1,8 @@
+# 1.16.0
+- Fixed history system.
+- Removed comment support for `manifest.json` file.
+- Added process history system.
+
 # 1.15.0
 - All option names casing in `manifest.json` file changed to `snake_case`.
 - Added <ins>**one line comment**</ins> (`// ...`) support for `manifest.json`.
