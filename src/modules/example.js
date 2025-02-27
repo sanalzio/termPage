@@ -4,5 +4,6 @@ addCommand(
         stdout.log("Example command!");
         return 0;
     },
+    "Example module command. %ALIASES%", // about this command
     ["ex",] // command aliases
 );

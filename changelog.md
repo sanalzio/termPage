@@ -1,3 +1,6 @@
+# 1.16.3
+- Simple optimizations.
+
 # 1.16.2
 - Fixed <kbd><kbd>CTRL</kbd> + <kbd>L</kbd></kbd> support for clear console.
 

@@ -44,7 +44,6 @@ let thisProcess, thisProcessPrefix, inProcess;
 
 // for autocomplete
 let tempAutoCompList = new Array(), autoCompList = new Array(), autoCompListNow, autoCompIndex, originalInput;
-let enableAutoComplete = true;
 
 
 // interval function for effective time event
@@ -197,22 +196,12 @@ const stdout = {
 /* Function for get command aliases */
 
 function getAliases(command) {
+    const commandAliases = Object.entries(aliases)
+        .filter(([key, value]) => value === command)
+        .map(([key]) => key)
+        .join(", ");
 
-    let commandAliases = " Aliases: ";
-
-    // loop for all aliases
-    for (const [key, value] of Object.entries(aliases)) {
-        // if this aliases for input command
-        if (value === command) {
-            commandAliases += key + ", ";
-        }
-    }
-
-    if (commandAliases == " Aliases: ") {
-        return "";
-    }
-
-    return commandAliases.slice(0, -2);
+    return commandAliases ? `Aliases: ${commandAliases}` : "";
 }
 
 /* Function for get command aliases */
@@ -385,7 +374,7 @@ const commands = {
             "example1",
             "example2"
         ],
-        about: `Test command.%ALIASES%`
+        about: `Test command. %ALIASES%`
     },
     "@echo": {
         func: async function (process) {
@@ -396,7 +385,7 @@ const commands = {
             }
             return 0;
         },
-        about: `Switch echo on/off.%ALIASES%\nExample:\n $ @echo on\n $ @echo off`
+        about: `Switch echo on/off. %ALIASES%\nExample:\n $ @echo on\n $ @echo off`
     },
     "cat": {
         func: async function (process, isInput = false) {
@@ -438,7 +427,7 @@ const commands = {
             // exit
             return 0;
         },
-        about: `Read file content.%ALIASES%\nExamples:\n $ cat ./file.txt\n $ cat https://example.com/file.txt`
+        about: `Read file content. %ALIASES%\nExamples:\n $ cat ./file.txt\n $ cat https://example.com/file.txt`
     },
     "echo": {
         func: async function (process, isInput = false) {
@@ -459,21 +448,21 @@ const commands = {
 
             return 0;
         },
-        about: `Echo command.%ALIASES%`
+        about: `Echo command. %ALIASES%`
     },
     "reload": {
         func: async function (process) {
             window.location.reload(false);
             return 0;
         },
-        about: `Reload page.%ALIASES%`
+        about: `Reload page. %ALIASES%`
     },
     "close": {
         func: async function (process) {
             window.close();
             return 0;
         },
-        about: `Close page.%ALIASES%`
+        about: `Close page. %ALIASES%`
     },
     "clear": {
         func: async function (process) {
@@ -491,7 +480,7 @@ const commands = {
 
             return 0;
         },
-        about: `Clear console.%ALIASES%\n Flags:\n  --all - Clear console with history\n Examples:\n  $ clear\n  $ clear --all`
+        about: `Clear console. %ALIASES%\n Flags:\n  --all - Clear console with history\n Examples:\n  $ clear\n  $ clear --all`
     },
     "bash": {
         func: async function (process) {
@@ -516,7 +505,7 @@ const commands = {
 
             return 0;
         },
-        about: `Run script.%ALIASES%\nExample:\n $ bash ./file.sh\n $ bash https://example.com/script.sh`
+        about: `Run script. %ALIASES%\nExample:\n $ bash ./file.sh\n $ bash https://example.com/script.sh`
     },
     "sh": {
         func: async function (process, isInput = false) {
@@ -568,7 +557,7 @@ const commands = {
             // exit
             return 0;
         },
-        about: `Execute input.%ALIASES%`
+        about: `Execute input. %ALIASES%`
     },
     "time": {
         func: async function (process) {
@@ -610,14 +599,14 @@ const commands = {
             // exit
             return 0;
         },
-        about: `Print system time.%ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h\n $ time --12h`
+        about: `Print system time. %ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h\n $ time --12h`
     },
     "about": {
         func: async function (process) {
             stdout.log(aboutContent);
             return 0;
         },
-        about: `Print information.%ALIASES%`
+        about: `Print information. %ALIASES%`
     },
     "date": {
         func: async function (process) {
@@ -640,7 +629,7 @@ const commands = {
             // exit
             return 0;
         },
-        about: `Print system date.%ALIASES%\nExamples:\n $ date\n $ date --long`
+        about: `Print system date. %ALIASES%\nExamples:\n $ date\n $ date --long`
     },
     "javascript": {
         func: async function (process, isInput = false) {
@@ -683,7 +672,7 @@ const commands = {
             // exit
             return 0;
         },
-        about: `Execute JavaScript code.%ALIASES%\nExamples:\n $ js console.log("Hello, World!")`
+        about: `Execute JavaScript code. %ALIASES%\nExamples:\n $ js console.log("Hello, World!")`
     },
     "bookmarks": {
         func: async function (process) {
@@ -703,7 +692,7 @@ const commands = {
             );
             return 0;
         },
-        about: `Print all bookmarks.%ALIASES%\nExamples:\n $ bookmarks`
+        about: `Print all bookmarks. %ALIASES%\nExamples:\n $ bookmarks`
     },
     "sengs": {
         func: async function (process) {
@@ -723,7 +712,7 @@ const commands = {
             );
             return 0;
         },
-        about: `Print all custom search engines.%ALIASES%`
+        about: `Print all custom search engines. %ALIASES%`
     },
     "start": {
         func: async function (process) {
@@ -737,7 +726,7 @@ const commands = {
             window.open(process.argv[0] + "://" + process.argv.slice(1).join(" "), "_blank");
             return 0;
         },
-        about: `Start program with custom URL Protocol.%ALIASES%\nExamples:\n $ start steam`
+        about: `Start program with custom URL Protocol. %ALIASES%\nExamples:\n $ start steam`
     },
     "calc": {
         func: async function (process, isInput = false) {
@@ -759,7 +748,7 @@ const commands = {
             // exit
             return 0;
         },
-        about: `Calculator.%ALIASES%\nExamples:\n $ calc 2+2\n $ math 2+2`
+        about: `Calculator. %ALIASES%\nExamples:\n $ calc 2+2\n $ math 2+2`
     },
     "go": {
         func: async function (process) {
@@ -778,7 +767,7 @@ const commands = {
             }
             return 0;
         },
-        about: `Go bookmark.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ go github\n $ go -b github"`
+        about: `Go bookmark. %ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ go github\n $ go -b github"`
     },
     "open": {
         func: async function (process) {
@@ -795,7 +784,7 @@ const commands = {
             window.open(url, "_blank");
             return 0;
         },
-        about: `Open url.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ openurl https://example.com`
+        about: `Open url. %ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ openurl https://example.com`
     },
     "wttr.in": {
         func: async function (process) {
@@ -831,7 +820,7 @@ const commands = {
                 return 0;
             }
         },
-        about: `Show weather.%ALIASES%\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en`
+        about: `Show weather. %ALIASES%\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en`
     },
     "search": {
         func: async function (process) {
@@ -858,7 +847,7 @@ const commands = {
 
             return 0;
         },
-        about: `Search in the web.%ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
+        about: `Search in the web. %ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
     },
     "help": {
         func: async function (process) {
@@ -916,7 +905,7 @@ const commands = {
 
             return 0;
         },
-        about: `Show help.%ALIASES%\nExamples:\n $ help\n $ help cat`
+        about: `Show help. %ALIASES%\nExamples:\n $ help\n $ help cat`
     },
 }
 
@@ -1090,7 +1079,7 @@ function loadFavicon() {
 /* auto complete functions */
 
 function autoComplete() {
-    if(enableAutoComplete) {
+    if(settings["enable_auto_complete"]) {
         if (stdIn.value.trim().length < 1) {
             clearAutoComp();
             return;
@@ -1098,12 +1087,12 @@ function autoComplete() {
 
         if (originalInput) originalInput = undefined;
 
-        autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
-
         if (autoCompList.includes(stdIn.value)) {
             autoComp.innerHTML = "";
             return;
         }
+
+        autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
 
         if (autoCompListNow.length == 0) {
             clearAutoComp();
@@ -1116,21 +1105,29 @@ function autoComplete() {
 }
 
 function clearAutoComp() {
+    if (!settings["enable_auto_complete"]) return;
+
     autoCompIndex = 0;
     autoComp.innerHTML = "";
     autoCompListNow = new Array();
 }
 
 function resetAutoCompList() {
+    if (!settings["enable_auto_complete"]) return;
+
     autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
 }
 
 function clearAutoCompList() {
+    if (!settings["enable_auto_complete"]) return;
+
     tempAutoCompList = [...autoCompList];
     autoCompList = new Array();
 }
 
 function restoreAutoCompList() {
+    if (!settings["enable_auto_complete"]) return;
+
     autoCompList = [...tempAutoCompList];
     tempAutoCompList = new Array();
 }
@@ -1171,9 +1168,6 @@ function restoreHistory(commandObject) {
 function loadModuleDom(moduleName) {
     const moduleScriptElement = document.createElement("script");
     moduleScriptElement.src = modulesFolderLocation + moduleName + ".js";
-    //// moduleScriptElement.onload = () => {
-    ////     resetAutoCompList();
-    //// };
 
     document.body.appendChild(moduleScriptElement);
 }
@@ -1268,8 +1262,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     applyThemes();
 
     loadFavicon();
-
-    enableAutoComplete = settings["enable_auto_complete"];
 
     for (let i = 0; i < manifest.modules.length; i++) {
         const moduleName = manifest.modules[i];
@@ -1530,6 +1522,8 @@ stdIn.addEventListener("keydown", async (event) => {
     else if (event.key == "Tab") {
 
         event.preventDefault();
+
+        if (!settings["enable_auto_complete"]) return;
 
         if (autoComp.textContent == "") {
 
