@@ -1575,6 +1575,10 @@ stdIn.addEventListener("keydown", async (event) => {
         currentHistoryElement = history.length;
     }
 
+    else if (event.key == "l" && event.ctrlKey) {
+        stdout.clear();
+    }
+
 });
 
 stdIn.addEventListener("input", autoComplete);

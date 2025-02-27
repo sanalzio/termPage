@@ -1,3 +1,6 @@
+# 1.16.1
+- Added <kbd><kbd>CTRL</kbd> + <kbd>L</kbd></kbd> support for clear console.
+
 # 1.16.0
 - Fixed history system.
 - Removed comment support for `manifest.json` file.
