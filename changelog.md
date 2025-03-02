@@ -1,3 +1,6 @@
+# 1.16.4
+- Added <kbd><kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>L</kbd></kbd> support for clear console with history.
+
 # 1.16.3
 - Simple optimizations.
 

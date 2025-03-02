@@ -1569,9 +1569,18 @@ stdIn.addEventListener("keydown", async (event) => {
         currentHistoryElement = history.length;
     }
 
-    else if (event.key == "l" && event.ctrlKey) {
+    else if ((event.key == "l" || event.key == "L") && event.ctrlKey) {
         event.preventDefault();
         stdout.clear();
+
+        if (event.key == "L") {
+            history = [];
+            currentHistoryElement = 0;
+
+            // if rememberHistory option is enabled
+            if (localStorage.history)
+            localStorage.removeItem("history");
+        }
     }
 
 });
