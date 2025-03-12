@@ -22,7 +22,7 @@ commands["example"] = { // "example" = command name
         "ping",
         "PING"
     ],
-    about: `Example module command.%ALIASES%`
+    about: `Example module command. %ALIASES%`
 };
 
 aliases["ex"] = "example"; // "example" = aliases name

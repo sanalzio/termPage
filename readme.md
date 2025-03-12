@@ -135,7 +135,8 @@ Optional theme `.css` files. Edit `themes` dictionary in `manifest.json` like th
 ```json
 "themes": [
     "./themes/glass.css",
-    "./themes/custom-background.css"
+    "./themes/custom-background.css",
+    "./themes/fira-code-font.css"
 ]
 ```
 

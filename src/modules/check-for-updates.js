@@ -92,7 +92,7 @@ commands["checkForUpdates"] = {
 
         return 0;
     },
-    about: `Checks for updates.%ALIASES%\nFlags: --jsconsole: If no updates are found, prints the message to the JavaScript console.`
+    about: `Checks for updates. %ALIASES%\nFlags: --jsconsole: If no updates are found, prints the message to the JavaScript console.`
 };
 
 aliases["cfu"] = "checkForUpdates";

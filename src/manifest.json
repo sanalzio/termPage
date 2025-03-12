@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.16.4",
+    "version": "1.16.5",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -69,7 +69,8 @@
 
     "themes": [
         "./themes/glass.css",
-        "./themes/custom-background.css"
+        "./themes/custom-background.css",
+        "./themes/fira-code-font.css"
     ],
 
     "modules": [

@@ -1,3 +1,9 @@
+# 1.16.5
+- Fixed `allowMultiLines` system. (Read line 638 in `src/scripts/index.js` file for example.)
+- The time-out requirement has been removed for `request` function.
+- Moved `Fira Code` font to themes.
+- Added `escapeUnsafeHTML` function for `stdout.startProcess`.
+
 # 1.16.4
 - Added <kbd><kbd>CTRL</kbd> + <kbd>SHIFT</kbd> + <kbd>L</kbd></kbd> support for clear console with history.
 

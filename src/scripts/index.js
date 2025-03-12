@@ -78,9 +78,9 @@ let aliases = {
 
 /* fetch function with timeout */
 
-async function request(url, options = {}, timeout = 4000, logErr = true) {
+async function request(url, options = {}, timeout = null, logErr = true) {
                                       // (miliseconds)
-    return Promise.race([
+    if (timeout) return Promise.race([
         fetch(url, options),
         new Promise((_, reject) =>
             setTimeout(() => reject(new Error('timeout')), timeout)
@@ -88,9 +88,27 @@ async function request(url, options = {}, timeout = 4000, logErr = true) {
     ]).catch(err => {
         if (logErr) stdout.log(err);
     });
+
+    return fetch(url, options).catch(err => {
+        if (logErr) stdout.log(err);
+    })
 }
 
 /* fetch function with timeout */
+
+
+/* escape html unsafe characters */
+
+function escapeUnsafeHTML(string) {
+    return string
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+/* escape html unsafe characters */
 
 
 /* get history from localStorage */
@@ -158,7 +176,7 @@ const stdout = {
 
         stdIn.setAttribute("rows", "1");
 
-        const stdInValue = stdIn.value.startsWith("\n") ? stdIn.value.slice(1) : stdIn.value;
+        const stdInValue = escapeUnsafeHTML( stdIn.value.startsWith("\n") ? stdIn.value.slice(1) : stdIn.value );
 
         stdOut.innerHTML += "<span class=\"process\">" +
             "<span class=\"process-command\">" +
@@ -408,7 +426,7 @@ const commands = {
             // if argument is a url
             const res = await request(process._);
 
-            if (!res) return 1;
+            if (!res) return 500;
 
             // if connection returned error
             const err = res.status !== 200 ? res.status : null;
@@ -1451,6 +1469,13 @@ stdIn.addEventListener("keydown", async (event) => {
         stdout.exitProcess();
 
         clearAutoComp();
+
+    }
+
+    else if (event.shiftKey && event.key == "Enter" && !allowMultiLines) {
+
+        event.preventDefault();
+        return;
 
     }
 
