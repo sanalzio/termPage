@@ -43,7 +43,12 @@ const defaultLog = console.log;
 let thisProcess, thisProcessPrefix, inProcess;
 
 // for autocomplete
-let tempAutoCompList = new Array(), autoCompList = new Array(), autoCompListNow, autoCompIndex, originalInput;
+let tempAutoCompList = new Array(),
+    autoCompList = new Array(),
+    autoCompListNow,
+    autoCompIndex,
+    originalInput,
+    alwaysShowSuggestions;
 
 
 // interval function for effective time event
@@ -932,22 +937,27 @@ const commands = {
 
 /* execute command function */
 
-async function execute(command) {
+async function execute(command, writeLikeCommandInput = false, commandPrefix = "") {
 
     let exitCode = 0;
-
-    // disable writing preffix and command
-    /* stdOut.innerHTML += prefix.innerHTML +
-        command +
-        "<br>";
-    
-    form.style.display = "none"; */
-
 
     // if this input is a comment, ignore it
     if(command === "" || command.startsWith("#")) exitCode = 0;
 
     const process = parseInput(command);
+
+
+    if (writeLikeCommandInput) {
+
+        stdOut.innerHTML += "<span class=\"process\">" +
+        "<span class=\"process-command\">" +
+        (commandPrefix ? commandPrefix : prefix.innerHTML) +
+        (thisProcess != undefined ? command.slice(process.command.length + 1) : command) +
+        "</span><br><span class=\"process-out\"></span></span>";
+
+        inProcess = true;
+    }
+
         
     if (commands[process.command]) {
         exitCode = await commands[process.command].func(process);
@@ -963,7 +973,9 @@ async function execute(command) {
         }
     }
 
-    form.style.display = "flex";
+    if (writeLikeCommandInput)
+        inProcess = false;
+
     mainDiv.scrollTop = mainDiv.scrollHeight;
 
 }
@@ -1060,6 +1072,24 @@ function addCommand(cmd, func, about, cmdAliases = [], autoComplete = undefined)
 /* add command function */
 
 
+/* execute command buttons */
+
+
+/*  usage: <span class="exec-cmd" command="echo Hello, World!" >Click me!</span>
+*                                                 ^                ^
+*                                         command to execute   display text
+*/
+
+document.addEventListener("click", function (event) {
+
+    if (event.target.classList.contains("exec-cmd") && event.target.getAttribute("command"))
+        execute(event.target.getAttribute("command"), true);
+});
+
+
+/* execute command buttons */
+
+
 /* funtion for load custom themes from manifest.json */
 
 function applyThemes() {
@@ -1105,7 +1135,7 @@ function autoComplete() {
 
         if (originalInput) originalInput = undefined;
 
-        if (autoCompList.includes(stdIn.value)) {
+        if (!alwaysShowSuggestions && autoCompList.includes(stdIn.value)) {
             autoComp.innerHTML = "";
             return;
         }

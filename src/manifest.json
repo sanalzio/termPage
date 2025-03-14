@@ -1,6 +1,6 @@
 {
     "name": "termPage",
-    "version": "1.16.5",
+    "version": "1.16.6",
     "author": "Sanalzio",
     "description": "My custom like terminal home page.",
     
@@ -75,10 +75,6 @@
 
     "modules": [
         "example",
-
-        "libraries/tdk",
-        "tdk",
-
         "check-for-updates"
     ]
 }

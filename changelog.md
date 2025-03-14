@@ -1,3 +1,13 @@
+# 1.16.6
+- TDK module deprecated.
+- Added `click to execute command` button system.
+
+    Usage:
+    ```html
+    <span class="exec-cmd" command="echo Hello, World!" >Click me!</span>
+    ```
+- Added `writeLikeCommandInput` and `commandPrefix` arguments to `execute` function.
+
 # 1.16.5
 - Fixed `allowMultiLines` system. (Read line 638 in `src/scripts/index.js` file for example.)
 - The time-out requirement has been removed for `request` function.

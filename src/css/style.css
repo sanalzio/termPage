@@ -105,10 +105,14 @@ body {
     white-space: pre;
 }
 
-#std-out a{
+#std-out a {
     color: currentColor;
 }
-#std-out fieldset{
+#std-out .exec-cmd {
+    text-decoration: underline;
+    cursor: pointer;
+}
+#std-out fieldset {
     border-color: currentColor;
 }
 
