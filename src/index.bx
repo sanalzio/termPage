@@ -1,9 +1,12 @@
 !DOCTYPE[html]
-html{
+html[lang="en"]{
 head{
     meta[charset="UTF-8"]%
     meta[name="viewport" content="width=device-width, initial-scale=1.0"]%
     title{New Tab}
+
+    ``` favicon ```
+    link[rel="shortcut icon" href="./assets/termTab.png" type="image/x-icon"]%
 
     ``` import unmodifiable css files ```
     link[rel="stylesheet" href="./css/ansi-escape.css"]%
@@ -11,29 +14,31 @@ head{
 
     ``` import modifiable css files ```
     link[rel="stylesheet" href="./themes/default.css"]%
-    link#color_scheme[rel="stylesheet" href="./themes/dark.css"]%
-    link[rel="stylesheet" href="./themes/glass.css"]%
-    link[rel="stylesheet" href="./themes/custom-background.css"]%
+    link[rel="stylesheet" href="./themes/dark.css" id="color_scheme"]%
+    ``` link[rel="stylesheet" href="./themes/glass.css"]%
+    link[rel="stylesheet" href="./themes/custom-background.css"]% ```
 }
 body{
     div#main{
         p#std-out{}
         div#form{
-            label#prefix[for="std-in"]{span#usr-host.ansi-bright-green-fg{span#user{user}@span#host{host}}:span#cd.ansi-blue-fg{~}&#36;&nbsp;}
-            textarea#std-in[autocomplete="off" spellcheck="false" type="text" name="std-in" rows="1"]{}
+            label#prefix[for="std-in"]{span#usr-host.ansi-green-fg{span#user{user}@span#host{host}}:span#cd.ansi-blue-fg{~}&#36;&nbsp;}
+            span#std-in-container{
+                span#outo-complete{}
+                textarea#std-in[autocomplete="off" spellcheck="false" type="text" name="std-in" rows="1"]{}
+            }
         }
     }
     script[src="./scripts/ansi_up.js"]{}
-    script[src="./scripts/lzar.js"]{}
     script[src="./scripts/colorama.js"]{}
-    script#index-script-el[src="./scripts/index.js"]{}
+    script[src="./scripts/index.js"]{}
 }
 }
 
 ```
 what is the .bx file?
 
-.bx file is the file extension of the mark up language I wrote.
+.bx file is my own binx named documentation formating styles file.
 
 it's only works with binx
 

@@ -1,0 +1,47 @@
+:root {
+  color-scheme: dark;
+
+  /* Catppuccin Mocha Base Colors */
+  --html-background: #1e1e2e;
+  --html-text: #cdd6f4;
+  --html-selection: #cdd6f4;
+  --html-selection-text: #1e1e2e;
+  --scrollbar-thumb-color: rgba(205, 214, 244, 0.7);
+
+  /* Catppuccin ANSI Colors */
+  --ansi-black-fg: #1e1e2e;
+  --ansi-red-fg: #f38ba8;
+  --ansi-green-fg: #a6e3a1;
+  --ansi-yellow-fg: #f9e2af;
+  --ansi-blue-fg: #89b4fa;
+  --ansi-magenta-fg: #f5c2e7;
+  --ansi-cyan-fg: #94e2d5;
+  --ansi-white-fg: #cdd6f4;
+
+  --ansi-bright-black-fg: #45475a;
+  --ansi-bright-red-fg: #eba0ac;
+  --ansi-bright-green-fg: #c3e88d;
+  --ansi-bright-yellow-fg: #f9e2af;
+  --ansi-bright-blue-fg: #89b4fa;
+  --ansi-bright-magenta-fg: #f5c2e7;
+  --ansi-bright-cyan-fg: #94e2d5;
+  --ansi-bright-white-fg: #ffffff;
+
+  --ansi-black-bg: #1e1e2e;
+  --ansi-red-bg: #f38ba8;
+  --ansi-green-bg: #a6e3a1;
+  --ansi-yellow-bg: #f9e2af;
+  --ansi-blue-bg: #89b4fa;
+  --ansi-magenta-bg: #f5c2e7;
+  --ansi-cyan-bg: #94e2d5;
+  --ansi-white-bg: #cdd6f4;
+
+  --ansi-bright-black-bg: #313244;
+  --ansi-bright-red-bg: #eba0ac;
+  --ansi-bright-green-bg: #c3e88d;
+  --ansi-bright-yellow-bg: #f9e2af;
+  --ansi-bright-blue-bg: #89b4fa;
+  --ansi-bright-magenta-bg: #f5c2e7;
+  --ansi-bright-cyan-bg: #94e2d5;
+  --ansi-bright-white-bg: #ffffff;
+}

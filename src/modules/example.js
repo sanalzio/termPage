@@ -1,9 +1,23 @@
-addCommand(
+addCommand (
     "example", // command name
-    async function (process, isInput = false) {  // command operations
+
+    // command operations
+    async function (process, isInput = false) {
         stdout.log("Example command!");
         return 0;
     },
-    "Example module command. %ALIASES%", // about this command
-    ["ex",] // command aliases
+
+    // options
+    {
+        // about this command
+        about: "Example module command. %ALIASES%",
+
+        // command aliases
+        aliases: ["ex", "exam"],
+
+        // operations before exit
+        beforeExit: async function (keyboardInput, error = false) {
+            stdout.log(error ? "Error." : keyboardInput ? "Keyboard input." : "Normal exit.");
+        }
+    }
 );

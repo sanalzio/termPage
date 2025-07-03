@@ -1,6 +1,12 @@
 :root{
     /* --html-background: url("../wallpaper/ascii_cats/latte-pink-cat.svg"); */
-    --html-background: url("../wallpaper/sanalzio/neon-red.png");
+    --html-background: url("../wallpaper/sanalzio/dark.webp");
+}
+
+@media (prefers-color-scheme: light) {
+    :root{
+        --html-background: url("../wallpaper/sanalzio/light.webp");
+    }
 }
 
 body{

@@ -43,6 +43,7 @@ var AnsiUp = (function () {
         this.overline = false;
         this.blink = false;
         this.rapidBlink = false;
+        this.reverse = false;
         this.hidden = false;
         this.strike = false;
         this.fg = this.bg = null;
@@ -291,7 +292,7 @@ var AnsiUp = (function () {
         return blocks.join("");
     };
     AnsiUp.prototype.with_state = function (pkt) {
-        return { bold: this.bold, italic: this.italic, underline: this.underline, overline: this.overline, blink: this.blink, rapidBlink: this.rapidBlink, hidden: this.hidden, strike: this.strike, fg: this.fg, bg: this.bg, text: pkt.text };
+        return { bold: this.bold, italic: this.italic, underline: this.underline, overline: this.overline, blink: this.blink, rapidBlink: this.rapidBlink, reverse: this.reverse, hidden: this.hidden, strike: this.strike, fg: this.fg, bg: this.bg, text: pkt.text };
     };
     AnsiUp.prototype.process_ansi = function (pkt) {
         var sgr_cmds = pkt.text.split(';');
@@ -306,6 +307,7 @@ var AnsiUp = (function () {
                 this.overline = false;
                 this.blink = false;
                 this.rapidBlink = false;
+                this.reverse = false;
                 this.hidden = false;
                 this.strike = false;
             }
@@ -326,6 +328,9 @@ var AnsiUp = (function () {
             }
             else if (num === 6) {
                 this.rapidBlink = true;
+            }
+            else if (num === 7) {
+                this.reverse = true;
             }
             else if (num === 8) {
                 this.hidden = true;
@@ -348,6 +353,9 @@ var AnsiUp = (function () {
             else if (num === 25) {
                 this.blink = false;
                 this.rapidBlink = false;
+            }
+            else if (num === 27) {
+                this.reverse = false;
             }
             else if (num === 28) {
                 this.hidden = false;
@@ -407,7 +415,7 @@ var AnsiUp = (function () {
         if (txt.length === 0)
             return txt;
         txt = this.escape_txt_for_html(txt);
-        if (!fragment.bold && !fragment.italic && !fragment.underline && !fragment.overline && !fragment.blink && !fragment.rapidBlink && !fragment.hidden && !fragment.strike && fragment.fg === null && fragment.bg === null)
+        if (!fragment.bold && !fragment.italic && !fragment.underline && !fragment.overline && !fragment.blink && !fragment.rapidBlink && !fragment.reverse && !fragment.hidden && !fragment.strike && fragment.fg === null && fragment.bg === null)
             return txt;
         var styles = [];
         var classes = [];
@@ -425,15 +433,17 @@ var AnsiUp = (function () {
             classes.push('ansi-blink');
         if (fragment.rapidBlink)
             classes.push('ansi-rapid-blink');
+        if (fragment.reverse)
+            styles.push('display:inline-block;transform-origin:center;transform:rotateY(180deg)');
         if (fragment.hidden)
             styles.push('visibility:hidden');
         if (fragment.strike)
             styles.push('text-decoration:line-through');
         if (!this._use_classes) {
             if (fg)
-                styles.push("color:rgb(" + fg.rgb.join(',') + ")");
+                styles.push("color:rgb(" + fg.rgb.join(',') + ");--fg:rgb(" + fg.rgb.join(',') + ")");
             if (bg)
-                styles.push("background-color:rgb(" + bg.rgb + ")");
+                styles.push("background-color:rgb(" + bg.rgb + ");--bg:rgb(" + bg.rgb + ")");
         }
         else {
             if (fg) {
@@ -441,7 +451,7 @@ var AnsiUp = (function () {
                     classes.push(fg.class_name + "-fg");
                 }
                 else {
-                    styles.push("color:rgb(" + fg.rgb.join(',') + ")");
+                    styles.push("color:rgb(" + fg.rgb.join(',') + ");--fg:rgb(" + fg.rgb.join(',') + ")");
                 }
             }
             if (bg) {
@@ -449,7 +459,7 @@ var AnsiUp = (function () {
                     classes.push(bg.class_name + "-bg");
                 }
                 else {
-                    styles.push("background-color:rgb(" + bg.rgb.join(',') + ")");
+                    styles.push("background-color:rgb(" + bg.rgb.join(',') + ");--bg:rgb(" + bg.rgb.join(',') + ")");
                 }
             }
         }

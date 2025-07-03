@@ -23,81 +23,86 @@ My custom like terminal home page.
 
 ### Terminal settings
 
-Edit `terminal_settings` dictionary in `manifest.json` like this:
+Edit `settings.json` like this:
 
 ```json
-    "terminal_settings": {
 
-        // Page title
-        "title": "New Tab",
+    // Page title
+    "title": "New Tab",
 
-        // Custom favicon path like "./assets/icon.png". null for disable favicon.
-        "tab_favicon": null,
+    // Custom favicon path like "./assets/icon.png". null for disable favicon.
+    "tab_favicon": null,
 
-        // user name for command preffix
-        "user": "username",
+    // user name for command preffix
+    "user": "username",
 
-        // host name for command preffix
-         // types: null or string:
-          // null for detect browser type auto
-        "host": null, // "chrome"
+    // host name for command preffix
+        // types: null or string:
+        // null for detect browser type auto
+    "host": null, // "chrome"
 
-        // search engine for "seach" command
-         // replace "$&" with query required place
-        "search_engine_url": "https://duckduckgo.com/?q=$&",
+    // search engine for "seach" command
+        // replace "$&" with query required place
+    "search_engine_url": "https://duckduckgo.com/?q=$&",
 
-        // location for "wttr.in" command
-        "location": "Ankara",
-        //  * "Ankara"              # city name
-        //  * "~Eiffel+tower"       # any location (+ for spaces)
-        //  * "Москва"              # Unicode name of any location in any language
-        //  * "esb"                 # airport code (3 letters)
-        //  * "@stackoverflow.com"  # domain name
-        //  * "06800"               # area codes
-        //  * "-78.46,106.79"       # GPS coordinates
+    // location for "wttr.in" command
+    "location": "New York",
+    //  * "New York"            # city name
+    //  * "~Eiffel+tower"       # any location (+ for spaces)
+    //  * "Москва"              # Unicode name of any location in any language
+    //  * "esb"                 # airport code (3 letters)
+    //  * "@stackoverflow.com"  # domain name
+    //  * "06800"               # area codes
+    //  * "-78.46,106.79"       # GPS coordinates
 
 
-        // language for "wttr.in" command
-        "language": "en",
+    // language for "wttr.in" command
+    "language": "en",
 
-        // enable execute "load.sh" on load
-        "allow_load_script": false,
+    // enable execute "load.sh" on load
+    "allow_load_script": false,
 
-        // enable set effective time on load
-        "effective_time": false,
+    // enable set effective time on load
+    "effective_time": false,
 
-        // set default clock format
-         // 12 or 24 only
-          // 12 = 11:59 AM
-          // 24 = 23:59
-        "time_hours": 12,
+    // set default clock format
+        // 12 or 24 only
+        // 12 = 11:59 AM
+        // 24 = 23:59
+    "time_hours": 12,
 
-        // save history to localStorge and remeber old history
-        "remebmer_history": false,
+    // save history to localStorge and remeber old history
+    "remebmer_history": false,
 
-        // enable terminal like copy/paste system
-        "enable_terminal_like_copy_paste": false,
+    // enable terminal like copy/paste system
+    "enable_terminal_like_copy_paste": false,
 
-        // enable auto complete system
-        "enable_auto_complete": true,
+    // enable auto complete system
+    "enable_auto_complete": true,
 
-        // check for updates on load (needs "modules/check-for-updates.js" file)
-        "check_for_updates_on_load": true,
+    // check for updates on load (needs "modules/check-for-updates.js" file)
+    "check_for_updates_on_load": true,
 
-        // terminal color theme
-        "color_scheme": "dark"
-    },
+    // terminal color theme ("dark", "light" or "system")
+    "color_scheme": "system"
+
+    "allow_smooth_scroll": true,
+
+    // Offers suggestions from the history.
+    "suggest_from_history": true,
+
+    ...
 ```
 
 ### Bookmarks
 
-Edit `bookmarks` dictionary in `manifest.json`.
+Edit `bookmarks` in `settings.json`.
 
 ### Search Engines
 
-Custom search engines allows `seacrh -b -yt search query` and `seacrh -yt search query` like usage.
+Custom search engines allows `seacrh -yt search query` like usage.
 
-Edit `search_engines` dictionary in `manifest.json` like this:
+Edit `search_engines` in `settings.json` like this:
 
 ```json
 "search_engines": {
@@ -112,7 +117,7 @@ Edit `search_engines` dictionary in `manifest.json` like this:
 
 ### Aliases
 
-For comand aliases. Edit `aliases` dictionary in `manifest.json` like this:
+For comand aliases. Edit `aliases` in `settings.json` like this:
 
 ```json
 "aliases": {
@@ -130,19 +135,26 @@ For comand aliases. Edit `aliases` dictionary in `manifest.json` like this:
 
 ### Themes
 
-Optional theme `.css` files. Edit `themes` dictionary in `manifest.json` like this:
+Optional theme `.css` files. Edit `themes` in `settings.json` like this:
 
 ```json
 "themes": [
     "./themes/glass.css",
     "./themes/custom-background.css",
-    "./themes/fira-code-font.css"
+    "./themes/fira-code-font.css",
+
+    // or like this
+    {
+        "path":"./themes/example.css",
+        "media":"(prefers-color-scheme: light)",
+        "colorScheme":"light"
+    }
 ]
 ```
 
 ## How to add custom background
 
-1) Add `custom-background.css` theme file into `themes` dictionary in `manifest.json` like this:
+1) Add `custom-background.css` theme file into `themes` in `settings.json` like this:
 
     ```json
     "themes": [
@@ -165,16 +177,31 @@ Optional theme `.css` files. Edit `themes` dictionary in `manifest.json` like th
 1) Create like `new-file.js` named file in `src/modules/` folder.
 
     ```js
-    addCommand(
+    addCommand (
         "example", // command name
-        async function (process, isInput = false) {  // command operations
+
+        // command operations
+        async function (process, isInput = false) {
             stdout.log("Example command!");
             return 0;
         },
-        ["ex",] // command aliases
+
+        // options
+        {
+            // about this command
+            about: "Example module command. %ALIASES%",
+
+            // command aliases
+            aliases: ["ex", "exam"],
+
+            // operations before exit
+            beforeExit: async function (keyboardInput, error = false) {
+                stdout.log(error ? "Error." : keyboardInput ? "Keyboard input." : "Normal exit.");
+            }
+        }
     );
     ```
-2) Add `"new-file.js"` to `manifest.modules`
+2) Add `"new-file.js"` to `settings.modules`
 
     ```json
     "modules": [
@@ -182,6 +209,10 @@ Optional theme `.css` files. Edit `themes` dictionary in `manifest.json` like th
         "new-file.js"
     ]
     ```
+
+## Fixing `calc` and `javascript` commands
+
+Change `"manifest_version"` option to `2` in `manifest.json` file.
 
 ## License
 

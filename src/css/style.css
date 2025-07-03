@@ -1,5 +1,8 @@
-*{
-    box-sizing: border-box !important;
+:root{
+    box-sizing: border-box;
+
+    --bg: var(--html-selection-text);
+    --fg: var(--html-text);
 }
 
 html,
@@ -72,6 +75,10 @@ body {
     z-index: 200;
 }
 
+#prefix {
+    white-space: pre;
+}
+
 #std-in-container, #std-in {
     width: 100%;
 }
@@ -114,6 +121,9 @@ body {
 }
 #std-out fieldset {
     border-color: currentColor;
+}
+.no-text-decoration {
+    text-decoration: none !important;
 }
 
 ::selection {

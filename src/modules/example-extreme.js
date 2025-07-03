@@ -1,4 +1,4 @@
-commands["example"] = { // "example" = command name
+commands["sayhello"] = { // "sayhello" = command name
     func: async function (process, isInput = false) {
 
         // if no argument
@@ -8,8 +8,7 @@ commands["example"] = { // "example" = command name
             return "";
         }
 
-        if (process._.toLowerCase() == "ping")
-            stdout.log("pong", false);
+        stdout.log("Hello " + process._, false);
 
         // if is std input
         if(isInput)
@@ -19,13 +18,13 @@ commands["example"] = { // "example" = command name
         return 0;
     },
     autoComplete: [
-        "ping",
-        "PING"
+        "Sanalzio",
+        "Virtualzio"
     ],
     about: `Example module command. %ALIASES%`
 };
 
-aliases["ex"] = "example"; // "example" = aliases name
+aliases["sayhi"] = "sayhello"; // "sayhi" : aliases name
 
-autoCompList.push("example"); // for autocomplete
-autoCompList.push("ex"); // for autocomplete
+session.autoCompList.push("sayhello"); // for autocomplete
+session.autoCompList.push("sayhi"); // for autocomplete

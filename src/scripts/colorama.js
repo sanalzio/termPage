@@ -2,7 +2,7 @@ const Reset = "\x1b[0m";
 
 const Fore = {
     Reset : "\x1b[39m",
-    Bright : "\x1b[1m",
+    Bold : "\x1b[1m",
     Black : "\x1b[30m",
     Red : "\x1b[31m",
     Green : "\x1b[32m",
@@ -69,5 +69,5 @@ const Style = {
     NotHidden : "\x1b[28m",
     NotStrike : "\x1b[29m",
     Overline : "\x1b[53m",
-    NotOverline : "\x1b[55m",
+    NotOverline : "\x1b[55m"
 };

@@ -1,3 +1,12 @@
+# 1.17.0
+- Added `stdin` API.
+- Writed better `calc` command.
+- Added `-i` and `-nw` flags for `go`, `open` and `search` commands.
+- Added `"system"` option for theme setting.
+- Added `todo` and `test` modules.
+- Maked little changes on colors.
+- Moved `wttr.in` command to modules.
+
 # 1.16.6
 - TDK module deprecated.
 - Added `click to execute command` button system.

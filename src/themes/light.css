@@ -1,49 +1,50 @@
 :root {
+    color-scheme: light;
 
-    color-scheme: dark;
+    /* Yüksek kontrastlı pastel tema */
+    --html-background: #fefefe;
+    --html-text: #1a1a1a;
+    --html-selection: #1a1a1a;
+    --html-selection-text: #fefefe;
+    --scrollbar-thumb-color: rgba(26, 26, 26, 0.5);
 
+    /* ANSI standart renkler (pastel ama daha net kontrastlı) */
+    --ansi-bright-black-fg: #666;
+    --ansi-bright-red-fg: #e57373;
+    --ansi-bright-green-fg: #81c784;
+    --ansi-bright-yellow-fg: #fff176;
+    --ansi-bright-blue-fg: #64b5f6;
+    --ansi-bright-magenta-fg: #ba68c8;
+    --ansi-bright-cyan-fg: #4dd0e1;
+    --ansi-bright-white-fg: #fff;
 
+    /* Parlak ANSI renkler */
+    --ansi-black-fg: #333;
+    --ansi-red-fg: #ef5350;
+    --ansi-green-fg: #66bb6a;
+    --ansi-yellow-fg: #ffeb3b;
+    --ansi-blue-fg: #42a5f5;
+    --ansi-magenta-fg: #ab47bc;
+    --ansi-cyan-fg: #26c6da;
+    --ansi-white-fg: #e0e0e0;
 
-    /* Colors for white theme */
-    --html-background: #dddddd;
-    --html-text: #212121;
-    --html-selection: #212121;
-    --html-selection-text: #dddddd;
-    --scrollbar-thumb-color: rgba(33, 33, 33, 0.7);
+    /* Arka planlar */
+    --ansi-bright-black-bg: #424242;
+    --ansi-bright-red-bg: #f28b82;
+    --ansi-bright-green-bg: #a5d6a7;
+    --ansi-bright-yellow-bg: #fff59d;
+    --ansi-bright-blue-bg: #90caf9;
+    --ansi-bright-magenta-bg: #ce93d8;
+    --ansi-bright-cyan-bg: #80deea;
+    --ansi-bright-white-bg: #fff;
 
-    --ansi-black-fg: #212121; /* matches text color */
-    --ansi-red-fg: #ef5959; /* keep pastel red for contrast */
-    --ansi-green-fg: #59ef59; /* keep pastel green for contrast */
-    --ansi-yellow-fg: #efef59; /* keep pastel yellow for contrast */
-    --ansi-blue-fg: #59aaef; /* keep pastel blue for contrast */
-    --ansi-magenta-fg: #ef59ef; /* keep pastel magenta for contrast */
-    --ansi-cyan-fg: #59efef; /* keep pastel cyan for contrast */
-    --ansi-white-fg: #dddddd; /* white (same as background for hiding) */
-
-    --ansi-bright-black-fg: #444444; /* slightly darker text color */
-    --ansi-bright-red-fg: #f35a5a; /* light pastel red */
-    --ansi-bright-green-fg: #5af35a; /* light pastel green */
-    --ansi-bright-yellow-fg: #f3f35a; /* light pastel yellow */
-    --ansi-bright-blue-fg: #5abbf3; /* light pastel blue */
-    --ansi-bright-magenta-fg: #f35af3; /* light pastel magenta */
-    --ansi-bright-cyan-fg: #5af3f3; /* light pastel cyan */
-    --ansi-bright-white-fg: #ededed; /* white (same as background for hiding) */
-
-    --ansi-black-bg: #212121; /* dark color for contrast (optional) */
-    --ansi-red-bg: #ef5959; /* lighter red background */
-    --ansi-green-bg: #59ef59; /* lighter green background */
-    --ansi-yellow-bg: #efef59; /* lighter yellow background */
-    --ansi-blue-bg: #59aaef; /* lighter blue background */
-    --ansi-magenta-bg: #ef59ef; /* lighter magenta background */
-    --ansi-cyan-bg: #59efef; /* lighter cyan background */
-    --ansi-white-bg: #dddddd; /* white (same as background) */
-
-    --ansi-bright-black-bg: #333333; /* darker color for contrast (optional) */
-    --ansi-bright-red-bg: #f35a5a; /* lighter pastel red background */
-    --ansi-bright-green-bg: #5af35a; /* lighter pastel green background */
-    --ansi-bright-yellow-bg: #f3f35a; /* lighter pastel yellow background */
-    --ansi-bright-blue-bg: #5abbf3; /* lighter pastel blue background */
-    --ansi-bright-magenta-bg: #f35af3; /* lighter pastel magenta background */
-    --ansi-bright-cyan-bg: #5af3f3; /* lighter pastel cyan background */
-    --ansi-bright-white-bg: #ededed; /* white (same as background) */
+    /* Parlak arka planlar */
+    --ansi-black-bg: #1a1a1a;
+    --ansi-red-bg: #ef9a9a;
+    --ansi-green-bg: #a5d6a7;
+    --ansi-yellow-bg: #fff176;
+    --ansi-blue-bg: #64b5f6;
+    --ansi-magenta-bg: #ba68c8;
+    --ansi-cyan-bg: #4dd0e1;
+    --ansi-white-bg: #fafafa;
 }

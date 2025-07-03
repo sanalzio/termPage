@@ -7,48 +7,49 @@ let currentHistoryElement = 0;
 
 const user = document.getElementById("user");
 const host = document.getElementById("host");
-const prefix = document.getElementById("prefix");
+const prefixElement = document.getElementById("prefix");
 const form = document.getElementById("form");
 const mainDiv = document.getElementById("main");
-const stdIn = document.getElementById("std-in");
+const stdInElement = document.getElementById("std-in");
 const autoComp = document.getElementById("outo-complete");
 const stdOut = document.getElementById("std-out");
-const color_scheme = document.getElementById("color_scheme");
+const colorSchemeLinkElement = document.getElementById("color_scheme");
 
 // modules folder location
 const modulesFolderLocation = location.href.split("/").slice(0,-1).join("/") + "/modules/";
 
-// default prefix
-let pref = prefix.innerHTML;
+const session = {
+    defaultPrefix: prefixElement.innerHTML,
 
-let rawPrefix;
+    // for shift+enter event
+    allowMultiLines: false,
 
-// setup ansi up module
+    scrolledProcessStart: false,
+
+    tempAutoCompList: new Array(),
+    autoCompList: new Array()
+};
+
+const isExtension = ((typeof browser !== "undefined" && typeof browser.runtime !== "undefined") || (typeof chrome !== "undefined" && typeof chrome.runtime !== "undefined"));
+const browserObj = isExtension ? ((typeof browser !== "undefined" && browser.runtime && browser.runtime.getURL) ? browser : chrome) : undefined;
+
+// setup ansi up module //
 const ansi_up = new AnsiUp;
 ansi_up.use_classes = true;
+// setup ansi up module //
 
-// setup lzar module for math command
-const math = new lzar();
-
-let bookmarks, settings, manifest, aboutContent;
+let settings, manifest;
 
 let times, time24s, timeInterval;
-
-// for shift+enter event
-let allowMultiLines = true;
 
 // for eval command
 const defaultLog = console.log;
 
-let thisProcess, thisProcessPrefix, inProcess;
+let thisProcess, thisProcessPrefix, inProcess, processScrollTop;
 
 // for autocomplete
-let tempAutoCompList = new Array(),
-    autoCompList = new Array(),
-    autoCompListNow,
-    autoCompIndex,
-    originalInput,
-    alwaysShowSuggestions;
+const alwaysShowSuggestionsDefault = false,
+      autoCompIgnoreCaseDefault = false;
 
 
 // interval function for effective time event
@@ -73,7 +74,6 @@ const timeIntervalFunction = () => {
 let aliases = {
     "h": "help",
     "s": "search",
-    "weather": "wttr.in",
     "calculator": "calc",
     "math": "calc",
     "@ECHO": "@echo"
@@ -90,13 +90,9 @@ async function request(url, options = {}, timeout = null, logErr = true) {
         new Promise((_, reject) =>
             setTimeout(() => reject(new Error('timeout')), timeout)
         )
-    ]).catch(err => {
-        if (logErr) stdout.log(err);
-    });
+    ]);
 
-    return fetch(url, options).catch(err => {
-        if (logErr) stdout.log(err);
-    })
+    return fetch(url, options);
 }
 
 /* fetch function with timeout */
@@ -126,42 +122,92 @@ if(localStorage.history){
 /* get history from localStorage */
 
 
-/* Class for stdout file output */
+/* scroll of console output */
+
+const scroll = {
+
+    toEnd: function () {
+
+        if (settings.allow_smooth_scroll) {
+            mainDiv.scrollTo({top: mainDiv.scrollHeight, behavior: 'smooth'});
+            return;
+        }
+
+        mainDiv.scrollTop = mainDiv.scrollHeight;
+    },
+
+    toStart: function () {
+
+        if (settings.allow_smooth_scroll) {
+            mainDiv.scrollTo({top: 0, behavior: 'smooth'});
+            return;
+        }
+
+        mainDiv.scrollTop = 0;
+    },
+
+    by: function (y) {
+
+        if (settings.allow_smooth_scroll) {
+            mainDiv.scrollBy({top: y, behavior: 'smooth'});
+            return;
+        }
+
+        mainDiv.scrollBy(0, y);
+    },
+
+    to: function (y) {
+
+        if (settings.allow_smooth_scroll) {
+            mainDiv.scrollTo({top: y, behavior: 'smooth'});
+            return;
+        }
+
+        mainDiv.scrollTo(0, y);
+    }
+};
+
+/* scroll of console output */
+
+
+/* Classes for io operations */
 
 const stdout = {
+
+    getOutputElement: () => inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut,
 
     // write input and add line break to output
     log: function (text, format = true, autoReset = true) {
 
-        const standartOutput = inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut;
+        const standartOutput = stdout.getOutputElement();
 
         if (!format) {
             standartOutput.innerHTML += text + "<br>";
             return;
         }
-        standartOutput.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>")
+        standartOutput.innerHTML += ansi_up.ansi_to_html(text + (autoReset?Reset:"") + "\n").replaceAll("\n", "<br>")
     },
     // write error and add line break to output
     error: function (text, format = true, autoReset = true) {
 
-        const standartOutput = inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut;
+        const standartOutput = stdout.getOutputElement();
 
         if (!format) {
-            standartOutput.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": ").replaceAll("\n", "<br>") + text + "<br>";
+            standartOutput.innerHTML += "<span class=\"ansi-red-fg\">Error</span>: " + text.replaceAll("\n", "<br>") + "<br>";
             return;
         }
-        standartOutput.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": " + text + (autoReset ? Reset : "") + "\n").replaceAll("\n", "<br>");
+        standartOutput.innerHTML += ansi_up.ansi_to_html(Fore.Red + "Error" + Reset + ": " + text + (autoReset?Reset:"") + "\n").replaceAll("\n", "<br>");
     },
     // write input to output
-    write: function (text, format = true, autoReset = false) {
+    write: function (text, format = true, autoReset = true) {
 
-        const standartOutput = inProcess ? stdOut.querySelector("span.process:last-child > span.process-out") : stdOut;
+        const standartOutput = stdout.getOutputElement();
 
         if (!format) {
             standartOutput.innerHTML += text;
             return;
         }
-        standartOutput.innerHTML += ansi_up.ansi_to_html(text + (autoReset ? Reset : "")).replaceAll("\n", "<br>");
+        standartOutput.innerHTML += ansi_up.ansi_to_html(text + (autoReset?Reset:"")).replaceAll("\n", "<br>");
     },
     // clear console
     clear: function () {
@@ -177,19 +223,25 @@ const stdout = {
         standartOutput.innerHTML = "";
     },
     // start command process
-    startProcess: function (thisPrefix = prefix.innerHTML) {
+    startProcess: function (thisPrefix = prefixElement.innerHTML) {
 
-        stdIn.setAttribute("rows", "1");
+        stdInElement.rows = 1;
 
-        const stdInValue = escapeUnsafeHTML( stdIn.value.startsWith("\n") ? stdIn.value.slice(1) : stdIn.value );
+        const stdInValue = stdInElement.value;
+
+        let inputStr = escapeUnsafeHTML(stdInValue);
+
+        if (inputStr.includes("\n")) inputStr = inputStr.replaceAll("\n", "\n" + " ".repeat(prefixElement.innerText.length));
 
         stdOut.innerHTML += "<span class=\"process\">" +
             "<span class=\"process-command\">" +
             thisPrefix +
-            stdInValue +
+            inputStr +
             "</span><br><span class=\"process-out\"></span></span>";
 
-        if(stdInValue != "") { // && thisProcess === undefined
+        scroll.toEnd();
+
+        if(stdInValue != "" && history[history.length -1] !== stdInValue) { // && thisProcess === undefined
 
             history.push(stdInValue);
             currentHistoryElement = history.length;
@@ -198,22 +250,580 @@ const stdout = {
                 localStorage.setItem("history", JSON.stringify(history));
         }
 
+        stdInElement.value = "";
+
         form.style.display = "none";
 
+        processScrollTop = stdOut.clientHeight;
+        session.scrolledProcessStart = false;
+
         inProcess = true;
+
+        return stdInValue;
 
     },
     // exit command process
     exitProcess: function () {
-        stdIn.value = "";
+        stdInElement.value = "";
         form.style.display = "flex";
-        mainDiv.scrollTop = mainDiv.scrollHeight;
-        stdIn.focus();
+
+        if (!session.scrolledProcessStart)
+            scroll.toEnd();
+
+        stdInElement.focus();
         inProcess = false;
     },
+    // scroll process start
+    scrollProcessStart: function () {
+        scroll.to(processScrollTop);
+        session.scrolledProcessStart = true;
+    }
 }
 
-/* Class for stdout file output */
+const stdin = {
+    readKey: function () {
+
+        return new Promise((resolve) => {
+            function onKeyPress(event) {
+                window.removeEventListener("keydown", onKeyPress);
+                resolve(event);
+            }
+
+            window.addEventListener("keydown", onKeyPress);
+        });
+    },
+    readLine: function (options) {
+
+        options = { ...{ prefix: "", formatPrefix: undefined, allowCancel: true, allowMultiLines: false, writeInput: true }, ...options };
+
+        /*
+        options = {
+            prefix: String  =>  (""),
+            formatPrefix: Boolean  =>  (undefined),
+            allowCancel: Boolean  =>  (false),
+            allowMultiLines: Boolean  =>  (false),
+            writeInput: Boolean  =>  (true),
+            cursor: UnsignedInt | "start" | "end"  =>  ("end"),
+            selectionStart: UnsignedInt  =>  (undefined),
+            selectionEnd: UnsignedInt  =>  (undefined),
+            beforeRead: Function  =>  (undefined),
+            selectAll: Boolean  =>  (false)
+        }
+        */
+
+        session.reading = true;
+
+        // Set auto formatPrefix to true if it ansi escape code includes.
+        if (options.formatPrefix == undefined) {
+            if (options.prefix.includes("\x1b") || options.prefix.includes("\u001b"))
+                options.formatPrefix = true;
+            else
+                options.formatPrefix = false;
+        }
+
+        const beforePrefix = prefixElement.innerHTML;
+        const prefixContent = options.formatPrefix ? ansi_up.ansi_to_html(options.prefix).replaceAll("\n", "") : options.prefix;
+        if (options.prefix !== undefined) prefixElement.innerHTML = prefixContent;
+        const beforeallowMultiLines = session.allowMultiLines;
+        if (options.allowMultiLines) session.allowMultiLines = options.allowMultiLines;
+
+        const beforeDisplay = form.style.display;
+        form.style.display = "flex";
+        if (!session.scrolledProcessStart) scroll.toEnd();
+        stdInElement.focus();
+
+        stdInElement.value = options.content ?? "";
+
+        if (typeof options.cursor == "number") {
+            stdInElement.selectionStart = options.cursor;
+            stdInElement.selectionEnd = options.cursor;
+        } else if (options.cursor == "start") {
+            stdInElement.selectionStart = stdInElement.selectionEnd = 0;
+        } else {
+            stdInElement.selectionStart = stdInElement.selectionEnd = stdInElement.value.length;
+        }
+        if (options.selectAll) {
+            stdInElement.selectionStart = 0;
+            stdInElement.selectionEnd = stdInElement.value.length;
+        }
+
+        if (typeof options.selectionStart == "number")
+            stdInElement.selectionStart = options.selectionStart;
+        if (typeof options.selectionEnd == "number")
+            stdInElement.selectionEnd = options.selectionEnd;
+
+        stdInElement.focus();
+        if (typeof options.beforeRead == "function") options.beforeRead();
+
+        return new Promise((resolve) => {
+            function onKeyPress(event) {
+                if (options.allowCancel && event.ctrlKey && event.key == "c") {
+                    event.preventDefault();
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+                    session.allowMultiLines = beforeallowMultiLines;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent, false);
+
+                    resolve(undefined);
+                }
+                if (!event.shiftKey && event.key == "Enter") {
+                    event.preventDefault();
+                    const input = stdInElement.value;
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+                    session.allowMultiLines = beforeallowMultiLines;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + escapeUnsafeHTML(input), false);
+
+                    resolve(input);
+                }
+            }
+
+            stdInElement.addEventListener("keydown", onKeyPress);
+        });
+    },
+    readInt: function (options) {
+
+        options = { ...{ prefix: "", formatPrefix: undefined, allowCancel: true, writeInput: true }, ...options };
+
+        /*
+        options = {
+            prefix: String  =>  (""),
+            formatPrefix: Boolean  =>  (undefined),
+            allowCancel: Boolean  =>  (false),
+            allowMultiLines: Boolean  =>  (false),
+            writeInput: Boolean  =>  (true),
+            cursor: UnsignedInt | "start" | "end"  =>  ("end"),
+            selectionStart: UnsignedInt  =>  (undefined),
+            selectionEnd: UnsignedInt  =>  (undefined),
+            beforeRead: Function  =>  (undefined)
+        }
+        */
+
+        session.reading = true;
+
+        // Set auto options.formatPrefix to true if it ansi escape code includes.
+        if (options.formatPrefix == undefined) {
+            if (options.prefix.includes("\x1b") || options.prefix.includes("\u001b"))
+                options.formatPrefix = true;
+            else
+                options.formatPrefix = false;
+        }
+
+        const beforeDisplay = form.style.display;
+        const beforePrefix = prefixElement.innerHTML;
+
+        const prefixContent = options.formatPrefix ? ansi_up.ansi_to_html(options.prefix).replaceAll("\n", "") : options.prefix;
+        if (options.prefix !== undefined) prefixElement.innerHTML = prefixContent;
+
+        form.style.display = "flex";
+        if (!session.scrolledProcessStart) scroll.toEnd();
+        stdInElement.focus();
+
+        stdInElement.value = options.content ? options.content.toString() : "";
+
+        if (typeof options.cursor == "number") {
+            stdInElement.selectionStart = options.cursor;
+            stdInElement.selectionEnd = options.cursor;
+        } else if (options.cursor == "start") {
+            stdInElement.selectionStart = stdInElement.selectionEnd = 0;
+        } else {
+            stdInElement.selectionStart = stdInElement.selectionEnd = stdInElement.value.length;
+        }
+        if (options.selectAll) {
+            stdInElement.selectionStart = 0;
+            stdInElement.selectionEnd = stdInElement.value.length;
+        }
+
+        if (typeof options.selectionStart == "number")
+            stdInElement.selectionStart = options.selectionStart;
+        if (typeof options.selectionEnd == "number")
+            stdInElement.selectionEnd = options.selectionEnd;
+
+        stdInElement.focus();
+        if (typeof options.beforeRead == "function") options.beforeRead();
+
+        return new Promise((resolve) => {
+            function onKeyPress(event) {
+                if (allowCancel && event.ctrlKey && event.key == "c") {
+                    event.preventDefault();
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (writeInput)
+                        stdout.log(prefixContent + "^c", false);
+
+                    resolve(undefined);
+                }
+
+                const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter"];
+                if (
+                    !/^[0-9-]$/.test(event.key) &&
+                    !allowedKeys.includes(event.key)
+                ) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!event.shiftKey && event.key == "Enter") {
+                    event.preventDefault();
+                    const input = stdInElement.value === "" ? undefined : stdInElement.value;
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (writeInput)
+                        stdout.log(prefixContent + (input ?? ""), false);
+
+                    resolve(parseInt(input));
+                }
+            }
+
+            stdInElement.addEventListener("keydown", onKeyPress);
+        });
+    },
+    readUInt: function (options) {
+
+        options = { ...{ prefix: "", formatPrefix: undefined, allowCancel: true, writeInput: true }, ...options };
+
+        /*
+        options = {
+            prefix: String  =>  (""),
+            formatPrefix: Boolean  =>  (undefined),
+            allowCancel: Boolean  =>  (false),
+            allowMultiLines: Boolean  =>  (false),
+            writeInput: Boolean  =>  (true),
+            cursor: UnsignedInt | "start" | "end"  =>  ("end"),
+            selectionStart: UnsignedInt  =>  (undefined),
+            selectionEnd: UnsignedInt  =>  (undefined),
+            beforeRead: Function  =>  (undefined)
+        }
+        */
+
+        session.reading = true;
+
+        // Set auto options.formatPrefix to true if it ansi escape code includes.
+        if (options.formatPrefix == undefined) {
+            if (options.prefix.includes("\x1b") || options.prefix.includes("\u001b"))
+                options.formatPrefix = true;
+            else
+                options.formatPrefix = false;
+        }
+
+        const beforeDisplay = form.style.display;
+        const beforePrefix = prefixElement.innerHTML;
+
+        const prefixContent = options.formatPrefix ? ansi_up.ansi_to_html(options.prefix).replaceAll("\n", "") : options.prefix;
+        if (options.prefix !== undefined) prefixElement.innerHTML = prefixContent;
+
+        form.style.display = "flex";
+        if (!session.scrolledProcessStart) scroll.toEnd();
+        stdInElement.focus();
+
+        stdInElement.value = options.content ? options.content.toString() : "";
+
+        if (typeof options.cursor == "number") {
+            stdInElement.selectionStart = options.cursor;
+            stdInElement.selectionEnd = options.cursor;
+        } else if (options.cursor == "start") {
+            stdInElement.selectionStart = stdInElement.selectionEnd = 0;
+        } else {
+            stdInElement.selectionStart = stdInElement.selectionEnd = stdInElement.value.length;
+        }
+        if (options.selectAll) {
+            stdInElement.selectionStart = 0;
+            stdInElement.selectionEnd = stdInElement.value.length;
+        }
+
+        if (typeof options.selectionStart == "number")
+            stdInElement.selectionStart = options.selectionStart;
+        if (typeof options.selectionEnd == "number")
+            stdInElement.selectionEnd = options.selectionEnd;
+
+        stdInElement.focus();
+        if (typeof options.beforeRead == "function") options.beforeRead();
+
+        return new Promise((resolve) => {
+            function onKeyPress(event) {
+                if (options.allowCancel && event.ctrlKey && event.key == "c") {
+                    event.preventDefault();
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + "^c", false);
+
+                    resolve(undefined);
+                }
+
+                const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter"];
+                if (
+                    !/^[0-9]$/.test(event.key) &&
+                    !allowedKeys.includes(event.key)
+                ) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!event.shiftKey && event.key == "Enter") {
+                    event.preventDefault();
+                    const input = stdInElement.value === "" ? undefined : stdInElement.value;
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + (input ?? ""), false);
+
+                    resolve(parseInt(input));
+                }
+            }
+
+            stdInElement.addEventListener("keydown", onKeyPress);
+        });
+    },
+    readFloat: function (options) {
+
+        options = { ...{ prefix: "", formatPrefix: undefined, allowCancel: true, writeInput: true }, ...options };
+
+        /*
+        options = {
+            prefix: String  =>  (""),
+            formatPrefix: Boolean  =>  (undefined),
+            allowCancel: Boolean  =>  (false),
+            allowMultiLines: Boolean  =>  (false),
+            writeInput: Boolean  =>  (true),
+            cursor: UnsignedInt | "start" | "end"  =>  ("end"),
+            selectionStart: UnsignedInt  =>  (undefined),
+            selectionEnd: UnsignedInt  =>  (undefined),
+            beforeRead: Function  =>  (undefined)
+        }
+        */
+
+        session.reading = true;
+
+        // Set auto options.formatPrefix to true if it ansi escape code includes.
+        if (options.formatPrefix == undefined) {
+            if (options.prefix.includes("\x1b") || options.prefix.includes("\u001b"))
+                options.formatPrefix = true;
+            else
+                options.formatPrefix = false;
+        }
+
+        const beforeDisplay = form.style.display;
+        const beforePrefix = prefixElement.innerHTML;
+
+        const prefixContent = options.formatPrefix ? ansi_up.ansi_to_html(options.prefix).replaceAll("\n", "") : options.prefix;
+        if (options.prefix !== undefined) prefixElement.innerHTML = prefixContent;
+
+        form.style.display = "flex";
+        if (!session.scrolledProcessStart) scroll.toEnd();
+        stdInElement.focus();
+
+        stdInElement.value = options.content ? options.content.toString() : "";
+
+        if (typeof options.cursor == "number") {
+            stdInElement.selectionStart = options.cursor;
+            stdInElement.selectionEnd = options.cursor;
+        } else if (options.cursor == "start") {
+            stdInElement.selectionStart = stdInElement.selectionEnd = 0;
+        } else {
+            stdInElement.selectionStart = stdInElement.selectionEnd = stdInElement.value.length;
+        }
+        if (options.selectAll) {
+            stdInElement.selectionStart = 0;
+            stdInElement.selectionEnd = stdInElement.value.length;
+        }
+
+        if (typeof options.selectionStart == "number")
+            stdInElement.selectionStart = options.selectionStart;
+        if (typeof options.selectionEnd == "number")
+            stdInElement.selectionEnd = options.selectionEnd;
+
+        stdInElement.focus();
+        if (typeof options.beforeRead == "function") options.beforeRead();
+
+        return new Promise((resolve) => {
+            function onKeyPress(event) {
+                if (options.allowCancel && event.ctrlKey && event.key == "c") {
+                    event.preventDefault();
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + "^c", false);
+
+                    resolve(undefined);
+                }
+
+                const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter"];
+                if (
+                    !/^[0-9-.]$/.test(event.key) &&
+                    !allowedKeys.includes(event.key)
+                ) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!event.shiftKey && event.key == "Enter") {
+                    event.preventDefault();
+                    const input = stdInElement.value === "" ? undefined : stdInElement.value;
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + (input ?? ""), false);
+
+                    resolve(parseFloat(input));
+                }
+            }
+
+            stdInElement.addEventListener("keydown", onKeyPress);
+        });
+    },
+    readUFloat: function (options) {
+
+        options = { ...{ prefix: "", formatPrefix: undefined, allowCancel: true, writeInput: true }, ...options };
+
+        /*
+        options = {
+            prefix: String  =>  (""),
+            formatPrefix: Boolean  =>  (undefined),
+            allowCancel: Boolean  =>  (false),
+            allowMultiLines: Boolean  =>  (false),
+            writeInput: Boolean  =>  (true),
+            cursor: UnsignedInt | "start" | "end"  =>  ("end"),
+            selectionStart: UnsignedInt  =>  (undefined),
+            selectionEnd: UnsignedInt  =>  (undefined),
+            beforeRead: Function  =>  (undefined)
+        }
+        */
+
+        session.reading = true;
+
+        // Set auto options.formatPrefix to true if it ansi escape code includes.
+        if (options.formatPrefix == undefined) {
+            if (options.prefix.includes("\x1b") || options.prefix.includes("\u001b"))
+                options.formatPrefix = true;
+            else
+                options.formatPrefix = false;
+        }
+
+        const beforeDisplay = form.style.display;
+        const beforePrefix = prefixElement.innerHTML;
+
+        const prefixContent = options.formatPrefix ? ansi_up.ansi_to_html(options.prefix).replaceAll("\n", "") : options.prefix;
+        if (options.prefix !== undefined) prefixElement.innerHTML = prefixContent;
+
+        form.style.display = "flex";
+        if (!session.scrolledProcessStart) scroll.toEnd();
+        stdInElement.focus();
+
+        stdInElement.value = options.content ? options.content.toString() : "";
+
+        if (typeof options.cursor == "number") {
+            stdInElement.selectionStart = options.cursor;
+            stdInElement.selectionEnd = options.cursor;
+        } else if (options.cursor == "start") {
+            stdInElement.selectionStart = stdInElement.selectionEnd = 0;
+        } else {
+            stdInElement.selectionStart = stdInElement.selectionEnd = stdInElement.value.length;
+        }
+        if (options.selectAll) {
+            stdInElement.selectionStart = 0;
+            stdInElement.selectionEnd = stdInElement.value.length;
+        }
+
+        if (typeof options.selectionStart == "number")
+            stdInElement.selectionStart = options.selectionStart;
+        if (typeof options.selectionEnd == "number")
+            stdInElement.selectionEnd = options.selectionEnd;
+
+        stdInElement.focus();
+        if (typeof options.beforeRead == "function") options.beforeRead();
+
+        return new Promise((resolve) => {
+            function onKeyPress(event) {
+                if (options.allowCancel && event.ctrlKey && event.key == "c") {
+                    event.preventDefault();
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + "^c", false);
+
+                    resolve(undefined);
+                }
+
+                const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab", "Enter"];
+                if (
+                    !/^[0-9.]$/.test(event.key) &&
+                    !allowedKeys.includes(event.key)
+                ) {
+                    event.preventDefault();
+                    return;
+                }
+
+                if (!event.shiftKey && event.key == "Enter") {
+                    event.preventDefault();
+                    const input = stdInElement.value === "" ? undefined : stdInElement.value;
+                    stdInElement.value = "";
+                    stdInElement.removeEventListener("keydown", onKeyPress);
+
+                    form.style.display = beforeDisplay;
+                    prefixElement.innerHTML = beforePrefix;
+                    session.reading = false;
+
+                    if (options.writeInput)
+                        stdout.log(prefixContent + (input ?? ""), false);
+
+                    resolve(parseFloat(input));
+                }
+            }
+
+            stdInElement.addEventListener("keydown", onKeyPress);
+        });
+    }
+};
+
+/* Classes for io operations */
 
 
 /* Function for get command aliases */
@@ -254,12 +864,12 @@ function parseInput(input) {
     const options = {};
 
     // regexp for match arguments
-    const regex = /(?:[^\s"]+|"[^"]*"|'[^']*')+/g;
-    const simpleRegex = /(?:^|(?<=\s))(?:(?!-)[^\s]+|"[^"]*")/g;
+    const regex = /(?:[^\s]+|"[^"]*"|'[^']*')+/g;
+    const simpleRegex = /(?:^|(?<=\s))(?:(?!-)\S+|"[^"]*"|'[^']*')/g;
 
     // match arguments
-    const args = input.match(regex).map(arg => arg.replace(/(^"|"$|^'|'$)/g, ''));
-    const simpleArgs = input.match(simpleRegex).map(arg => arg.replace(/(^("|')-+([\s\S]+)("|')$)/g, "-$3"));
+    const args = input.match(regex).map(arg => arg.replace(/^(['"])([\s\S]+)\1$/g, '$2'));
+    const simpleArgs = input.match(simpleRegex).map(arg => arg.replace(/^(?<!\\)["'](-+)(.+)(?<!\\)["']$/g, "$1$2").replace(/(?<!\\)\\(["'])/g, "$1"));
 
     let i = 0;
     while (i < args.length) {
@@ -284,7 +894,6 @@ function parseInput(input) {
                     argv.push(args[i + 1]);
                     i += 2;
                 } else {
-
                     options[key] = true;
                     i++;
                 }
@@ -293,14 +902,17 @@ function parseInput(input) {
                 options[key] = true;
                 i++;
             }
-        } else i++;
+        } else {
+            if (i > 0) _ += _.length > 0 ? " " + arg : arg;
+            i++;
+        }
     }
 
-    i = 0;
+    /*i = 0;
     while (i < simpleArgs.length) {
         const arg = simpleArgs[i];
 
-        // if this is a command name
+         //if this is a command name
         if (i===0) {
             i++;
             continue;
@@ -319,11 +931,12 @@ function parseInput(input) {
         }
 
         i++;
-    }
+    }*/
 
     const command = argv.shift();
+    const $1 = input.slice(command.length + 1);
 
-    return { command, argv, simpleArgs, options, _ };
+    return { command, argv, simpleArgs, options, _, $0: input, $1 };
 }
 
 /* Function for parse arguments */
@@ -332,6 +945,11 @@ function parseInput(input) {
 /* Function for get browser name */
 
 function getBrowserType() {
+
+    if (typeof navigator.brave !== "undefined" && typeof navigator.brave.isBrave !== "undefined") {
+        return "brave";
+    }
+
     const test = (regexp) => {
         return regexp.test(navigator.userAgent);
     };
@@ -374,7 +992,7 @@ function nameChange() {
     // change title text with tab name
     document.title = settings.title;
 
-    pref = prefix.innerHTML;
+    session.defaultPrefix = prefixElement.innerHTML;
 
 }
 
@@ -384,27 +1002,12 @@ function nameChange() {
 /* commands */
 
 const commands = {
-    "test": {
-        func: async function (process) {
-            stdout.log("\n\n\x1b[1;33;40m 33;40  \x1b[1;33;41m 33;41  \x1b[1;33;42m 33;42  \x1b[1;33;43m 33;43  \x1b[1;33;44m 33;44  \x1b[1;33;45m 33;45  \x1b[1;33;46m 33;46  \x1b[1m\x1b[0m\n\n\x1b[1;33;42m >> Tests OK\x1b[0m\n\n");
-            // stdout.log(JSON.stringify(process, null, 4));
-            return 0;
-        },
-        beforeExit: async function (keyboardInput) { // if used `CTRL + C`: keyboardInput = true else keyboardInput = false
-            stdout.log(keyboardInput ? "Keyboard input." : "Bye.");
-        },
-        autoComplete: [
-            "example1",
-            "example2"
-        ],
-        about: `Test command. %ALIASES%`
-    },
     "@echo": {
         func: async function (process) {
             if (process._.toLowerCase() == "on") {
-                prefix.innerHTML = pref;
+                prefixElement.innerHTML = session.defaultPrefix;
             } else if (process._.toLowerCase() == "off") {
-                prefix.innerHTML = "";
+                prefixElement.innerHTML = "";
             }
             return 0;
         },
@@ -415,21 +1018,21 @@ const commands = {
 
             // if is std input
             if(isInput) {
-                stdout.log(process._, true);
+                stdout.log(process.$1, true);
 
                 // set std input prefix
                 return "";
             }
 
             // if no argument
-            if (process._ == "") {
+            if (process.$1 == "") {
 
                 // set std input prefix
                 return "";
             }
 
             // if argument is a url
-            const res = await request(process._);
+            const res = await request(process.$1);
 
             if (!res) return 500;
 
@@ -437,7 +1040,7 @@ const commands = {
             const err = res.status !== 200 ? res.status : null;
             if (err) {
                 // log error code
-                stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
+                stdout.error("Response returned " + Fore.Bold + Fore.Red + err + Fore.Reset + " code.");
                 // exit with error code
                 return err;
             }
@@ -445,7 +1048,7 @@ const commands = {
             const data = await res.text();
 
             // log file content
-            stdout.write(data + (data.endsWith("\n") ? "" : "\n"), false, false);
+            stdout.write(data + (data.endsWith("\n") ? "" : "\n"), false);
 
             // exit
             return 0;
@@ -456,13 +1059,13 @@ const commands = {
         func: async function (process, isInput = false) {
 
             // if no argument
-            if (process._ == "") {
+            if (process.$1 == "") {
 
                 // set std input prefix
                 return "";
             }
 
-            stdout.log(process._, false);
+            stdout.log(process.$1, false);
 
             // if is std input
             if(isInput)
@@ -493,12 +1096,7 @@ const commands = {
 
             // clear history
             if (process.options.all || process.options.a) {
-                history = [];
-                currentHistoryElement = 0;
-
-                // if rememberHistory option is enabled
-                if (localStorage.history)
-                    localStorage.removeItem("history");
+                clearHistory();
             }
 
             return 0;
@@ -509,7 +1107,7 @@ const commands = {
         func: async function (process) {
 
             // if argument is a url
-            const res = await request(process._);
+            const res = await request(process.$1);
 
             if (!res) return 1;
 
@@ -517,7 +1115,7 @@ const commands = {
             const err = res.status !== 200 ? res.status : null;
             if (err) {
                 // log error code
-                stdout.error("Response returned " + Fore.Bright + Fore.Red + err + Fore.Reset + " code.");
+                stdout.error("Response returned " + Fore.Bold + Fore.Red + err + Fore.Reset + " code.");
                 // exit with error code
                 return err;
             }
@@ -537,30 +1135,58 @@ const commands = {
             if(isInput) {
 
                 // parse input arguments
-                const inputProcess = parseInput(process._);
+                const inputProcess = parseInput(process.$1);
 
                 // execute command
                 if (commands[inputProcess.command]) {
 
                     // execute command and get reuturned code
-                    const result = await commands[inputProcess.command].func(inputProcess);
+                    let result;
 
-                    // if returned error
-                    if (result !== 0)
-                        // log error code
-                        stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                    try {
+                        result = await commands[inputProcess.command].func(inputProcess);
+
+                        // if returned error
+                        if (result !== 0)
+                            // log error code
+                            stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + result + Fore.Reset);
+
+                        if (commands[inputProcess.command].beforeExit) {
+                            try {
+                                await commands[inputProcess.command].beforeExit(false);
+                            } catch (error) {
+                                stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                            }
+                        }
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
                 }
                 
                 // execute command if alias exists
                 else if (inputProcess.command in aliases) {
 
                     // execute command and get reuturned code
-                    const result = await commands[aliases[inputProcess.command]].func(inputProcess);
+                    let result;
 
-                    // if returned error
-                    if (result !== 0)
-                        // log error code
-                        stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                    try {
+                        result = await commands[aliases[inputProcess.command]].func(inputProcess);
+
+                        // if returned error
+                        if (result !== 0)
+                            // log error code
+                            stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + result + Fore.Reset);
+
+                        if (commands[aliases[inputProcess.command]].beforeExit) {
+                            try {
+                                await commands[aliases[inputProcess.command]].beforeExit(false);
+                            } catch (error) {
+                                stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                            }
+                        }
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
                 }
                 
                 // if command not found
@@ -569,12 +1195,12 @@ const commands = {
                 }
 
                 // set std input prefix
-                return rawPrefix;
+                return session.rawPrefix;
             }
-            if (process._ == "") {
+            if (process.$1 == "") {
 
                 // set std input prefix
-                return rawPrefix;
+                return session.rawPrefix;
             }
 
             // exit
@@ -625,8 +1251,15 @@ const commands = {
         about: `Print system time. %ALIASES%\nFlags:\n --set: enable effective time\n --kill: disable effective time\n --24h: print time in 24 hours\nExamples:\n $ time\n $ time --24h\n $ time --12h`
     },
     "about": {
-        func: async function (process) {
-            stdout.log(aboutContent);
+        func: async function () {
+            stdout.log(`
+ ${Fore.BrightBlue}version${Fore.Reset}: ${Fore.Blue}${manifest.version}${Fore.Reset}
+ ${Fore.BrightBlue}font family${Fore.Reset}: ${Fore.Blue}${window.getComputedStyle(mainDiv).fontFamily}${Fore.Reset}
+ ${Fore.BrightBlue}search engine${Fore.Reset}: ${Fore.Blue}${settings["search_engine_url"].split("/")[2]}${Fore.Reset}
+
+ ${Fore.Red}█${Fore.Reset} ${Fore.Green}█${Fore.Reset} ${Fore.Yellow}█${Fore.Reset} ${Fore.Blue}█${Fore.Reset} ${Fore.Magenta}█${Fore.Reset} ${Fore.Cyan}█${Fore.Reset} ${Fore.White}█${Fore.Reset} ${Fore.Black}█${Fore.Reset}
+ ${Fore.BrightRed}█${Fore.Reset} ${Fore.BrightGreen}█${Fore.Reset} ${Fore.BrightYellow}█${Fore.Reset} ${Fore.BrightBlue}█${Fore.Reset} ${Fore.BrightMagenta}█${Fore.Reset} ${Fore.BrightCyan}█${Fore.Reset} ${Fore.BrightWhite}█${Fore.Reset} ${Fore.Gray}█${Fore.Reset}
+`);
             return 0;
         },
         about: `Print information. %ALIASES%`
@@ -658,11 +1291,12 @@ const commands = {
         func: async function (process, isInput = false) {
 
             // if is std input allow shift + enter for multiline input
-            if(isInput) allowMultiLines = true;
+            if(isInput) session.allowMultiLines = true;
 
             // if no arguments
-            if (process._ == "") {
+            if (process.$1 == "") {
 
+                session.allowMultiLines = true;
                 // set std input prefix
                 return ">&nbsp;";
             }
@@ -677,8 +1311,8 @@ const commands = {
             // create try-catch block for blocking errors
             try {
                 // evaluate input and log output
-                output = eval(process._);
-                stdout.log(Fore.Magenta + "< " + output + Fore.Reset);
+                output = eval(process.$1);
+                stdout.log(Fore.Bit8(247) + "< " + (typeof output == "object" ? JSON.stringify(output) : output));
             } catch (error) {
                 // if error log it
                 stdout.log(error);
@@ -705,7 +1339,7 @@ const commands = {
 
                         let out = "";
 
-                        for await (const [key, value] of Object.entries(bookmarks)) {
+                        for await (const [key, value] of Object.entries(settings.bookmarks)) {
                             out += Fore.BrightBlue + key + Fore.Reset + ": " + Fore.Blue + value + Fore.Reset + "\n";
                         }
 
@@ -725,7 +1359,7 @@ const commands = {
 
                         let out = "";
 
-                        for await (const [key, value] of Object.entries(manifest.search_engines)) {
+                        for await (const [key, value] of Object.entries(settings.search_engines)) {
                             out += Fore.BrightBlue + key + Fore.Reset + ": " + Fore.Blue + value + Fore.Reset + "\n";
                         }
 
@@ -755,18 +1389,28 @@ const commands = {
         func: async function (process, isInput = false) {
 
             // if no arguments
-            if (process._ == "") {
+            if (process.$1 == "") {
 
                 // set std input prefix to empty
-                return ">&nbsp;";
+                return "> ";
             }
 
-            stdout.log(math.calc(process._));
+            // create try-catch block for blocking errors
+            try {
+                // evaluate input and log output
+                output = eval("const{sin,cos,tan,sqrt,pow,random}=Math;let pi=Math.PI;" + process.$1.toLowerCase());
+                stdout.log(output);
+            } catch (error) {
+                // if error log it
+                stdout.log(error);
+            }
+
+            //stdout.log(eval(process.$1));
 
             // if is std input
             if(isInput)
                 // set std input prefix to empty
-                return ">&nbsp;";
+                return "> ";
 
             // exit
             return 0;
@@ -775,22 +1419,23 @@ const commands = {
     },
     "go": {
         func: async function (process) {
-            if (process.options.s) {
-                if (!bookmarks[process._]) {
-                    stdout.error("Bookmark not found.");
-                    return 1;
-                }
-                window.open(bookmarks[process._], "_self");
-            } else {
-                if (!bookmarks[process._]) {
-                    stdout.error("Bookmark not found.");
-                    return 1;
-                }
-                window.open(bookmarks[process._], "_blank");
+            if (!settings.bookmarks[process._]) {
+                stdout.error("Bookmark not found.");
+                return 1;
             }
+
+            if (process.options.i) {
+                browserObj.windows.create({ url:settings.bookmarks[process._], incognito: true, focused: true, state: "maximized" });
+                return 0;
+            }
+            if (process.options.nw) {
+                browserObj.windows.create({ url:settings.bookmarks[process._], focused: true, state: "maximized" });
+                return 0;
+            }
+            window.open(settings.bookmarks[process._], process.options.s ? "_self" : "_blank");
             return 0;
         },
-        about: `Go bookmark. %ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ go github\n $ go -b github"`
+        about: `Go bookmark. %ALIASES%\nFlags:\n -s: open in this tab\n -nw: open in new window\n -i: open in incognito window\nExamples:\n $ go github\n $ go -b github"`
     },
     "open": {
         func: async function (process) {
@@ -804,46 +1449,20 @@ const commands = {
                 return 0;
             }
 
+            if (process.options.i) {
+                browserObj.windows.create({ url:url, incognito: true, focused: true, state: "maximized" });
+                return 0;
+            }
+
+            if (process.options.nw) {
+                browserObj.windows.create({ url:url, focused: true, state: "maximized" });
+                return 0;
+            }
+
             window.open(url, "_blank");
             return 0;
         },
-        about: `Open url. %ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ openurl https://example.com`
-    },
-    "wttr.in": {
-        func: async function (process) {
-            if (process.options.c) {
-                const url = "https://wttr.in/" + process._
-                const response = await request(url, {}, 4000);
-                const data = await response.text();
-                stdout.log(data);
-                return 0;
-            }
-            const location = (()=>{
-                if (process._) {
-                    return process._;
-                } else {
-                    return settings.location;
-                }
-            })();
-            const url = "https://wttr.in/" +
-                location +
-                "?0nA&lang=" +
-                settings.language;
-            try {
-                const response = await request(url, {}, 4000);
-                const status = response.status;
-                if (status !== 200) {
-                    return status;
-                }
-                const data = await response.text();
-                stdout.log(data);
-                return 0;
-            } catch (error) {
-                stdout.log(error);
-                return 0;
-            }
-        },
-        about: `Show weather. %ALIASES%\nFlags: -c: custom options\nExamples:\n $ wttr.in\n $ wttr İstanbul\n $ wttr -c İstanbul?0nA&lang=en`
+        about: `Open url. %ALIASES%\nFlags:\n -s: open in this tab\n -nw: open in new window\n -i: open in incognito window\nExamples:\n $ openurl https://example.com`
     },
     "search": {
         func: async function (process) {
@@ -855,11 +1474,21 @@ const commands = {
             let url = encodeURI(process._).replace(encodeURI(process._), settings["search_engine_url"]);
 
             for (const [k, v] of Object.entries(process.options)) {
-                if ("s" == k) continue;
+                if (k == "s" || k == "nw" || k == "i") continue;
 
-                if (manifest.search_engines[k]) {
-                    url = encodeURI(process._).replace(encodeURI(process._), manifest.search_engines[k]);
+                if (settings.search_engines[k]) {
+                    url = encodeURI(process._).replace(encodeURI(process._), settings.search_engines[k]);
                 }
+            }
+
+            if (process.options.i) {
+                browserObj.windows.create({ url:url, incognito: true, focused: true, state: "maximized" });
+                return 0;
+            }
+
+            if (process.options.nw) {
+                browserObj.windows.create({ url:url, focused: true, state: "maximized" });
+                return 0;
             }
 
             if (process.options.s) {
@@ -870,7 +1499,7 @@ const commands = {
 
             return 0;
         },
-        about: `Search in the web. %ALIASES%\nFlags: -s: open in this tab\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
+        about: `Search in the web. %ALIASES%\nFlags:\n -s: open in this tab\n -nw: open in new window\n -i: open in incognito window\nExamples:\n $ search sanalzio\n $ s -s sanalzio\n $ s -yt Röportaj Adam`
     },
     "help": {
         func: async function (process) {
@@ -951,7 +1580,7 @@ async function execute(command, writeLikeCommandInput = false, commandPrefix = "
 
         stdOut.innerHTML += "<span class=\"process\">" +
         "<span class=\"process-command\">" +
-        (commandPrefix ? commandPrefix : prefix.innerHTML) +
+        (commandPrefix ? commandPrefix : prefixElement.innerHTML) +
         (thisProcess != undefined ? command.slice(process.command.length + 1) : command) +
         "</span><br><span class=\"process-out\"></span></span>";
 
@@ -962,21 +1591,21 @@ async function execute(command, writeLikeCommandInput = false, commandPrefix = "
     if (commands[process.command]) {
         exitCode = await commands[process.command].func(process);
         if (exitCode !== 0) {
-            stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
+            stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + exitCode + Fore.Reset);
         }
     }
 
     else if (process.command in aliases) {
         exitCode = await commands[aliases[process.command]].func(process);
         if (exitCode !== 0) {
-            stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
+            stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + exitCode + Fore.Reset);
         }
     }
 
     if (writeLikeCommandInput)
         inProcess = false;
 
-    mainDiv.scrollTop = mainDiv.scrollHeight;
+    scroll.toEnd();
 
 }
 
@@ -1001,21 +1630,21 @@ async function executeScript(scriptContent) {
         if (commands[process.command]) {
             exitCode = await commands[process.command].func(process);
             if (exitCode !== 0) {
-                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
+                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + exitCode + Fore.Reset);
             }
         }
 
         else if (process.command in aliases) {
             exitCode = await commands[aliases[process.command]].func(process);
             if (exitCode !== 0) {
-                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + exitCode + Fore.Reset);
+                stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + exitCode + Fore.Reset);
             }
         }
         
     }
     
     form.style.display = "flex";
-    mainDiv.scrollTop = mainDiv.scrollHeight;
+    scroll.toEnd();
     
 }
 
@@ -1024,12 +1653,12 @@ async function executeScript(scriptContent) {
 
 /* auto focus to #std-in */
 
-mainDiv.addEventListener("click", (event) => {
-    if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus({ preventScroll: true });
+mainDiv.addEventListener("click", () => {
+    if(!window.getSelection().toString() && !(document.activeElement == stdInElement)) stdInElement.focus({ preventScroll: true });
 });
 
-stdIn.addEventListener("input", (event) => {
-    mainDiv.scrollTop = mainDiv.scrollHeight;
+stdInElement.addEventListener("input", () => {
+    scroll.toEnd();
 });
 
 /* auto focus to #std-in */
@@ -1041,7 +1670,7 @@ stdOut.addEventListener("focusin", function (event) {
     event.stopPropagation();
     event.preventDefault();
     event.target.blur();
-    stdIn.focus({
+    stdInElement.focus({
         preventScroll: true
     });
 }, true);
@@ -1051,22 +1680,26 @@ stdOut.addEventListener("focusin", function (event) {
 
 /* add command function */
 
-function addCommand(cmd, func, about, cmdAliases = [], autoComplete = undefined) {
+function addCommand(cmd, func, options) {
+
+    options = {about: cmd + " command. %ALIASES%", ...options};
+
     commands[cmd] = new Object();
     commands[cmd].func = func;
-    commands[cmd].about = about;
+    commands[cmd].about = options.about;
 
-    autoCompList.push(cmd);
+    session.autoCompList.push(cmd);
 
-    if (cmdAliases.length > 0) {
-        for (let i = 0; i < cmdAliases.length; i++) {
-            const alias = cmdAliases[i];
+    if (Array.isArray(options.aliases) && options.aliases.length > 0) {
+        for (let i = 0; i < options.aliases.length; i++) {
+            const alias = options.aliases[i];
             aliases[alias] = cmd;
-            autoCompList.push(alias);
+            session.autoCompList.push(alias);
         }
     }
 
-    if (autoComplete) commands[cmd].autoComplete = autoComplete;
+    if (options.beforeExit && typeof options.beforeExit == "function") commands[cmd].beforeExit = options.beforeExit;
+    if (options.autoComplete && Array.isArray(options.autoComplete)) commands[cmd].autoComplete = options.autoComplete;
 }
 
 /* add command function */
@@ -1090,20 +1723,33 @@ document.addEventListener("click", function (event) {
 /* execute command buttons */
 
 
-/* funtion for load custom themes from manifest.json */
+/* funtion for load custom themes from settings.json */
 
 function applyThemes() {
-    for (let i = 0; i < manifest.themes.length; i++) {
-        const themeFilePath = manifest.themes[i];
+    for (let i = 0; i < settings.themes.length; i++) {
+        let theme;
+
+        if (typeof settings.themes[i] == "object") 
+            theme = settings.themes[i]
+        else
+            theme = {
+                path: settings.themes[i]
+            };
 
         const themeElement = document.createElement("link");
         themeElement.setAttribute("rel", "stylesheet");
-        themeElement.setAttribute("href", themeFilePath);
+
+        if (theme.media)
+            themeElement.media = theme.media;
+        if (theme.colorScheme)
+            themeElement.media += (themeElement.media.length > 0 ? "and" : "") + "(prefers-color-scheme: " + theme.colorScheme + ")";
+
+        themeElement.setAttribute("href", theme.path);
         document.head.appendChild(themeElement);
     }
 }
 
-/* funtion for load custom themes from manifest.json */
+/* funtion for load custom themes from settings.json */
 
 
 /* funtion for load favicon */
@@ -1128,56 +1774,60 @@ function loadFavicon() {
 
 function autoComplete() {
     if(settings["enable_auto_complete"]) {
-        if (stdIn.value.trim().length < 1) {
+        if (stdInElement.value.trim().length < 1) {
             clearAutoComp();
             return;
         }
 
-        if (originalInput) originalInput = undefined;
+        if (session.originalInput) session.originalInput = undefined;
 
-        if (!alwaysShowSuggestions && autoCompList.includes(stdIn.value)) {
-            autoComp.innerHTML = "";
+        if ((settings.suggest_from_history ? [...session.autoCompList, ...history] : session.autoCompList).some(el => session.autoCompIgnoreCase ? el.toLowerCase() === stdInElement.value.toLowerCase() : el === stdInElement.value)) {
+            if (!session.alwaysShowSuggestions) {
+                autoComp.innerHTML = "";
+            }
+            if (typeof onAutoCompMatchFound == "object") onAutoCompMatchFound.forEach(f=>f());
             return;
         }
 
-        autoCompListNow = autoCompList.filter(el => el.startsWith(stdIn.value) && el !== stdIn.value);
+        session.autoCompListNow = (settings.suggest_from_history ? [...session.autoCompList, ...history] : session.autoCompList).filter(el => session.autoCompIgnoreCase ? el.toLowerCase().startsWith(stdInElement.value.toLowerCase()) && el.toLowerCase() !== stdInElement.value.toLowerCase() : el.startsWith(stdInElement.value) && el !== stdInElement.value);
 
-        if (autoCompListNow.length == 0) {
+        if (session.autoCompListNow.length == 0) {
             clearAutoComp();
             return;
         }
 
-        autoCompIndex = 0;
-        autoComp.innerHTML = autoCompListNow[autoCompIndex];
+        session.autoCompIndex = 0;
+        autoComp.innerHTML = session.autoCompListNow[session.autoCompIndex];
     }
 }
 
 function clearAutoComp() {
     if (!settings["enable_auto_complete"]) return;
 
-    autoCompIndex = 0;
+    session.autoCompIndex = 0;
     autoComp.innerHTML = "";
-    autoCompListNow = new Array();
+    session.autoCompListNow = new Array();
+    if (typeof onClearAutoComp == "object") onClearAutoComp.forEach(f=>f());
 }
 
 function resetAutoCompList() {
     if (!settings["enable_auto_complete"]) return;
 
-    autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
+    session.autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
 }
 
 function clearAutoCompList() {
     if (!settings["enable_auto_complete"]) return;
 
-    tempAutoCompList = [...autoCompList];
-    autoCompList = new Array();
+    session.tempAutoCompList = [...session.autoCompList];
+    session.autoCompList = new Array();
 }
 
 function restoreAutoCompList() {
     if (!settings["enable_auto_complete"]) return;
 
-    autoCompList = [...tempAutoCompList];
-    tempAutoCompList = new Array();
+    session.autoCompList = [...session.tempAutoCompList];
+    session.tempAutoCompList = new Array();
 }
 
 /* auto complete functions */
@@ -1242,15 +1892,66 @@ function initCopyPasteLikeTerminal() {
         // paste with right click
         mainDiv.addEventListener("contextmenu", async (event) => {
             event.preventDefault();
+            clearAutoComp();
 
             const clipboardText = await navigator.clipboard.readText();
-            stdIn.value = stdIn.value.substring(0, stdIn.selectionStart) + clipboardText + stdIn.value.substring(stdIn.selectionEnd);
-            if(!window.getSelection().toString() && !(document.activeElement == stdIn)) stdIn.focus();
+
+            if (session.allowMultiLines || (!clipboardText.includes("\n") && !clipboardText.includes("\r")))
+
+                stdInElement.setRangeText(clipboardText, stdInElement.selectionStart, stdInElement.selectionEnd, 'end');
+
+            else {
+                stdInElement.setRangeText(
+                    clipboardText.replaceAll("\n", ' ').replaceAll("\r", ''),
+                    stdInElement.selectionStart, stdInElement.selectionEnd, 'end'
+                );
+            }
+            //stdInElement.value = stdInElement.value.substring(0, stdInElement.selectionStart) + clipboardText + stdInElement.value.substring(stdInElement.selectionEnd);
+            if(!window.getSelection().toString() && !(document.activeElement == stdInElement)) stdInElement.focus();
         });
     }
+
+    stdInElement.addEventListener('paste', function (event) {
+        clearAutoComp();
+
+        const clipboardData = event.clipboardData || window.clipboardData;
+        let pastedText = clipboardData.getData('text');
+
+        if (session.allowMultiLines || (!pastedText.includes("\n") && !pastedText.includes("\r"))) return;
+
+        event.preventDefault();
+
+        pastedText = pastedText.replaceAll("\n", ' ').replaceAll("\r", '');
+
+        stdInElement.setRangeText(pastedText, stdInElement.selectionStart, stdInElement.selectionEnd, 'end');
+    });
 }
 
 /* copy paste like terminal */
+
+
+/* clear history */
+
+function clearHistory() {
+    history = [];
+    currentHistoryElement = 0;
+
+    // clear process histories
+    const processHasHistory = Object.keys(commands).filter(cmd => {
+        const cmdObj = commands[cmd];
+        return cmdObj.history && typeof cmdObj.history !== "boolean" && cmdObj.history.length > 0
+    });
+
+    for (let i = 0; i < processHasHistory.length; i++) {
+        commands[processHasHistory[i]].history = undefined;
+    }
+
+    // if rememberHistory option is enabled
+    if (localStorage.history)
+        localStorage.removeItem("history");
+}
+
+/* clear history */
 
 
 /* scroll with keyboard like terminal */
@@ -1261,13 +1962,13 @@ mainDiv.addEventListener("keydown", (event) => {
 
         event.preventDefault();
 
-        mainDiv.scrollBy(0, -100);
+        scroll.by(-200);
     }
     if (event.ctrlKey && event.shiftKey && event.key == "ArrowDown") {
 
         event.preventDefault();
 
-        mainDiv.scrollBy(0, 100);
+        scroll.by(200);
     }
 
 });
@@ -1280,11 +1981,11 @@ window.addEventListener("keydown", (event) => {
 
     if (event.ctrlKey && event.key == "Home") {
         event.preventDefault();
-        mainDiv.scrollTop = 0;
+        scroll.toStart();
     }
     if (event.ctrlKey && event.key == "End") {
         event.preventDefault();
-        mainDiv.scrollTop = mainDiv.scrollHeight;
+        scroll.toEnd();
     }
 
 });
@@ -1292,27 +1993,50 @@ window.addEventListener("keydown", (event) => {
 /* home and end buttons */
 
 
+/* reload all scripts */
+
+function reloadScripts() {
+    document.querySelectorAll('script[src]').forEach(oldScript => {
+        const src = oldScript.getAttribute('src');
+        const newScript = document.createElement('script');
+        newScript.src = src + '?reload=' + new Date().getTime();
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
+/* reload all scripts */
+
+
 /* on load */
 
-document.addEventListener('DOMContentLoaded', async function() {
+(async function() {
 
-    form.style.display = "none";
+    manifest = await (await request("./manifest.json")).json();
+    settings = await (await request("./settings.json")).json();
 
-    const manifestRes = await request("./manifest.json");
-    manifest = await manifestRes.json();
+    aliases = {...settings.aliases, ...aliases};
+    settings.bookmarks = settings.bookmarks;
 
-    settings = manifest.terminal_settings;
-    aliases = {...manifest.aliases, ...aliases};
-    bookmarks = manifest.bookmarks;
+    const colorScheme = settings.color_scheme && (settings.color_scheme.toLowerCase() !== "system") ? settings.color_scheme.toLowerCase() : (window.matchMedia('(prefers-color-scheme: dark)').matches ? "dark" : "light");
+    switch (colorScheme) {
+        case "dark":
+        case "light":
+        case "system":
+            colorSchemeLinkElement.href = "./themes/" + colorScheme + ".css";
+            break;
 
-    color_scheme.href = "./themes/" + settings.color_scheme.toLowerCase() + ".css";
+        default:
+            stdout.error("Unknown color scheme: " + colorScheme);
+            colorSchemeLinkElement.href = "./themes/dark.css";
+            break;
+    }
 
     applyThemes();
 
     loadFavicon();
 
-    for (let i = 0; i < manifest.modules.length; i++) {
-        const moduleName = manifest.modules[i];
+    for (let i = 0; i < settings.modules.length; i++) {
+        const moduleName = settings.modules[i];
         loadModuleDom(moduleName);
     }
 
@@ -1331,20 +2055,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 
-    rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;";
+    session.rawPrefix = settings.user + "@" + (settings.host ?? getBrowserType()) + ":~#&nbsp;";
 
     nameChange();
 
-    autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
-
-    aboutContent = `
- ${Fore.BrightBlue}version${Fore.Reset}: ${Fore.Blue}${manifest.version}${Fore.Reset}
- ${Fore.BrightBlue}font family${Fore.Reset}: ${Fore.Blue}${window.getComputedStyle(mainDiv).fontFamily}${Fore.Reset}
- ${Fore.BrightBlue}search engine${Fore.Reset}: ${Fore.Blue}${settings["search_engine_url"].split("/")[2]}${Fore.Reset}
-
- ${Fore.Red}█${Fore.Reset} ${Fore.Green}█${Fore.Reset} ${Fore.Yellow}█${Fore.Reset} ${Fore.Blue}█${Fore.Reset} ${Fore.Magenta}█${Fore.Reset} ${Fore.Cyan}█${Fore.Reset} ${Fore.White}█${Fore.Reset} ${Fore.Gray}█${Fore.Reset}
- ${Fore.BrightRed}█${Fore.Reset} ${Fore.BrightGreen}█${Fore.Reset} ${Fore.BrightYellow}█${Fore.Reset} ${Fore.BrightBlue}█${Fore.Reset} ${Fore.BrightMagenta}█${Fore.Reset} ${Fore.BrightCyan}█${Fore.Reset} ${Fore.BrightWhite}█${Fore.Reset}
-`;
+    session.autoCompList = [...Object.keys(commands).filter(el => el.length > 1), ...Object.keys(aliases).filter(el => el.length > 1)].filter(el => el.length > 1);
 
     if (settings.allow_load_script) await fetch("./load.sh").then(async res => await res.text()).then(async (loadScript) => {
         if (!(loadScript === "")) await executeScript(loadScript);
@@ -1353,7 +2068,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     initCopyPasteLikeTerminal();
 
     form.style.display = "flex";
-    mainDiv.scrollTop = mainDiv.scrollHeight;
+    scroll.toEnd();
 
     mainDiv.style.display = "inline-block";
 
@@ -1362,44 +2077,87 @@ document.addEventListener('DOMContentLoaded', async function() {
         window.location.host !== "localhost" &&
         window.location.host !== "127.0.0.1:3000"
     ) {
-        stdIn.focus();
+        stdInElement.focus();
     }
-});
+})();
 
 /* on load */
 
 
+/* print to stdout on error */
+
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error(error);
+
+    stdout.log(Fore.Red + error.stack + " (at " + source.split("?")[0].replace("chrome-extension://" + chrome.runtime.id, "") + ":" + lineno + ":" + colno + ")" + Reset);
+
+    return true;
+};
+
+/* print to stdout on error */
+
+
 /* input button events */
 
-stdIn.addEventListener("keydown", async (event) => {
+stdInElement.addEventListener("keydown", async (event) => {
 
     if (!event.shiftKey && event.key == "Enter" && !window.getSelection().toString()) {
+
+        if (session.reading) return;
 
         event.preventDefault();
 
         if(thisProcess !== undefined) {
-            stdout.startProcess(thisProcessPrefix);
-            const result = await commands[thisProcess].func({command: thisProcess, _: stdIn.value}, true);
+            const input = stdout.startProcess(thisProcessPrefix);
+            let result;
 
-            if (typeof result === "string") {
-                thisProcessPrefix = result;
-                prefix.innerHTML = thisProcessPrefix;
-                if (commands[thisProcess].autoComplete) autoCompList = [...commands[thisProcess].autoComplete];
-                stdout.exitProcess();
-            }
-            else {
-                allowMultiLines = false;
-                prefix.innerHTML = pref;
+            try {
+                result = await commands[thisProcess].func(parseInput(thisProcess + " " + input), true);
+            } catch (error) {
+                stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
 
-                if (commands[thisProcess].beforeExit)
-                    await commands[thisProcess].beforeExit(true);
+                session.allowMultiLines = false;
+                prefixElement.innerHTML = session.defaultPrefix;
+
+                try {
+                    await commands[thisProcess].beforeExit(false, true);
+                } catch (error) {
+                    stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                }
 
                 restoreAutoCompList();
                 restoreHistory(commands[thisProcess]);
 
                 thisProcess = undefined;
                 if (result !== 0)
-                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + result + Fore.Reset);
+
+                stdout.exitProcess();
+                return;
+            }
+
+            if (typeof result === "string") {
+                thisProcessPrefix = result;
+                prefix.innerHTML = thisProcessPrefix;
+                if (commands[thisProcess].autoComplete) session.autoCompList = [...commands[thisProcess].autoComplete];
+                stdout.exitProcess();
+            }
+            else {
+                session.allowMultiLines = false;
+                prefixElement.innerHTML = session.defaultPrefix;
+
+                if (commands[thisProcess].beforeExit) {
+                    try {
+                        await commands[thisProcess].beforeExit(false);
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
+                }
+
+                restoreAutoCompList();
+                restoreHistory(commands[thisProcess]);
+
+                thisProcess = undefined;
 
                 stdout.exitProcess();
             }
@@ -1408,44 +2166,80 @@ stdIn.addEventListener("keydown", async (event) => {
             return;
         };
 
-        stdout.startProcess();
+        const input = stdout.startProcess();
 
-        if(stdIn.value === "" || stdIn.value.startsWith("#")) {
+        if(input === "" || input.startsWith("#")) {
             stdout.exitProcess();
             clearAutoComp();
             return;
         };
 
-        const process = parseInput(stdIn.value);
+        const process = parseInput(input);
         
         if (commands[process.command]) {
             thisProcess = process.command;
-            const result = await commands[process.command].func(process);
+            let result;
+
+            try {
+                result = await commands[process.command].func(process);
+            } catch (error) {
+                stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+
+                clearAutoCompList();
+                backupHistory(commands[process.command]);
+
+                session.allowMultiLines = false;
+                prefixElement.innerHTML = session.defaultPrefix;
+
+                if (commands[process.command].beforeExit) {
+                    try {
+                        await commands[process.command].beforeExit(false, true);
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
+                }
+
+                restoreAutoCompList();
+                restoreHistory(commands[process.command]);
+
+                thisProcess = undefined;
+
+                stdout.exitProcess();
+
+                clearAutoComp();
+
+                return;
+            }
 
             clearAutoCompList();
             backupHistory(commands[process.command]);
 
             if (typeof result === "string") {
                 thisProcessPrefix = result;
-                prefix.innerHTML = thisProcessPrefix;
+                prefixElement.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
-                if (commands[thisProcess].autoComplete) autoCompList = [...commands[thisProcess].autoComplete];
+                if (commands[thisProcess].autoComplete) session.autoCompList = [...commands[thisProcess].autoComplete];
                 clearAutoComp();
                 return;
             }
             else {
-                allowMultiLines = false;
-                prefix.innerHTML = pref;
+                session.allowMultiLines = false;
+                prefixElement.innerHTML = session.defaultPrefix;
 
-                if (commands[process.command].beforeExit)
-                    await commands[process.command].beforeExit(false);
+                if (commands[process.command].beforeExit) {
+                    try {
+                        await commands[process.command].beforeExit(false);
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
+                }
 
                 restoreAutoCompList();
                 restoreHistory(commands[process.command]);
 
                 thisProcess = undefined;
                 if (result !== 0)
-                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + result + Fore.Reset);
 
                 stdout.exitProcess();
 
@@ -1456,32 +2250,67 @@ stdIn.addEventListener("keydown", async (event) => {
 
         else if (process.command in aliases && aliases[process.command] in commands) {
             thisProcess = aliases[process.command];
-            const result = await commands[aliases[process.command]].func(process);
+            let result;
+
+            try {
+                result = await commands[aliases[process.command]].func(process);
+            } catch (error) {
+                stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+
+                clearAutoCompList();
+                backupHistory(commands[aliases[process.command]]);
+
+                session.allowMultiLines = false;
+                prefixElement.innerHTML = session.defaultPrefix;
+
+                if (commands[aliases[process.command]].beforeExit) {
+                    try {
+                        await commands[aliases[process.command]].beforeExit(false, true);
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
+                }
+
+                restoreAutoCompList();
+                restoreHistory(commands[aliases[process.command]]);
+
+                thisProcess = undefined;
+
+                stdout.exitProcess();
+
+                clearAutoComp();
+                return;
+            }
 
             clearAutoCompList();
             backupHistory(commands[aliases[process.command]]);
 
             if (typeof result === "string") {
                 thisProcessPrefix = result;
-                prefix.innerHTML = thisProcessPrefix;
+                prefixElement.innerHTML = thisProcessPrefix;
                 stdout.exitProcess();
-                if (commands[thisProcess].autoComplete) autoCompList = [...commands[thisProcess].autoComplete];
+                if (commands[thisProcess].autoComplete) session.autoCompList = [...commands[thisProcess].autoComplete];
                 clearAutoComp();
                 return;
             }
             else {
-                allowMultiLines = false;
-                prefix.innerHTML = pref;
+                session.allowMultiLines = false;
+                prefixElement.innerHTML = session.defaultPrefix;
 
-                if (commands[aliases[process.command]].beforeExit)
-                    await commands[aliases[process.command]].beforeExit(false);
+                if (commands[aliases[process.command]].beforeExit) {
+                    try {
+                        await commands[aliases[process.command]].beforeExit(false);
+                    } catch (error) {
+                        stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+                    }
+                }
 
                 restoreAutoCompList();
                 restoreHistory(commands[aliases[process.command]]);
 
                 thisProcess = undefined;
                 if (result !== 0)
-                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bright + result + Fore.Reset);
+                    stdout.log(Fore.Red + "The operation returned an error. Exit code " + Fore.Bold + result + Fore.Reset);
 
                 stdout.exitProcess();
 
@@ -1502,7 +2331,7 @@ stdIn.addEventListener("keydown", async (event) => {
 
     }
 
-    else if (event.shiftKey && event.key == "Enter" && !allowMultiLines) {
+    else if (event.shiftKey && event.key == "Enter" && !session.allowMultiLines) {
 
         event.preventDefault();
         return;
@@ -1510,47 +2339,106 @@ stdIn.addEventListener("keydown", async (event) => {
     }
 
     else if (
-        event.key == "ArrowUp" &&
-        !(event.ctrlKey && event.shiftKey)
+        (
+            event.key == "ArrowUp" &&
+            !(event.ctrlKey && event.shiftKey) &&
+            !session.allowMultiLines
+        ) ||
+        (
+            event.key == "ArrowUp" &&
+            !(event.ctrlKey && event.shiftKey) &&
+            session.allowMultiLines &&
+            (
+                stdInElement.rows == 1 ||
+                (
+                    stdInElement.selectionStart == stdInElement.selectionEnd &&
+                    !stdInElement.value.substring(0, stdInElement.selectionStart).includes('\n')
+                )
+            )
+        )
     ) {
+
+        if (session.reading) return;
 
         event.preventDefault();
 
         if (currentHistoryElement > 0) {
 
-            stdIn.value = history[--currentHistoryElement];
+            stdInElement.value = history[--currentHistoryElement];
 
             clearAutoComp();
             autoComplete();
 
+            if (!session.allowMultiLines) return;
+            const rows = stdInElement.value.split("\n").length;
+            if (rows !== stdInElement.rows)
+                stdInElement.rows = rows;
         }
 
     }
 
     else if (
-        event.key == "ArrowDown" &&
-        !(event.ctrlKey && event.shiftKey)
+        (
+            event.key == "ArrowDown" &&
+            !(event.ctrlKey && event.shiftKey) &&
+            !session.allowMultiLines
+        ) ||
+        (
+            event.key == "ArrowDown" &&
+            !(event.ctrlKey && event.shiftKey) &&
+            session.allowMultiLines &&
+            (
+                stdInElement.rows == 1 ||
+                (
+                    stdInElement.selectionStart == stdInElement.selectionEnd &&
+                    !stdInElement.value.substring(stdInElement.selectionStart).includes('\n')
+                )
+            )
+        )
     ) {
+
+        if (session.reading) return;
 
         event.preventDefault();
 
         if (currentHistoryElement < history.length) {
 
-            stdIn.value = history[++currentHistoryElement] ?? "";
+            stdInElement.value = history[++currentHistoryElement] ?? "";
 
             clearAutoComp();
             autoComplete();
 
+            if (!session.allowMultiLines) return;
+            const rows = stdInElement.value.split("\n").length;
+            if (rows !== stdInElement.rows)
+                stdInElement.rows = rows;
         }
 
     }
 
     else if (event.ctrlKey && event.key == "c" && thisProcess !== undefined && !window.getSelection().toString()) {
-        allowMultiLines = false;
-        prefix.innerHTML = pref;
 
-        if (commands[thisProcess].beforeExit)
-            await commands[thisProcess].beforeExit(true);
+        if (session.reading) return;
+
+        session.allowMultiLines = false;
+        prefixElement.innerHTML = session.defaultPrefix;
+
+        if (commands[thisProcess].beforeExit) {
+            try {
+                const result = await commands[thisProcess].beforeExit(true);
+
+                if (typeof result === "string") {
+                    thisProcessPrefix = result;
+                    prefixElement.innerHTML = thisProcessPrefix;
+                    stdout.exitProcess();
+                    if (commands[thisProcess].autoComplete) session.autoCompList = [...commands[thisProcess].autoComplete];
+                    clearAutoComp();
+                    return;
+                }
+            } catch (error) {
+                stdout.log(Fore.Red + error.stack.replaceAll(window.location.origin, "") + Reset);
+            }
+        }
 
         restoreAutoCompList();
         restoreHistory(commands[thisProcess]);
@@ -1561,7 +2449,7 @@ stdIn.addEventListener("keydown", async (event) => {
         clearAutoComp();
     }
 
-    else if (
+    /* else if (
         (
             !thisProcess ||
             window.getSelection().toString() !== ""
@@ -1569,12 +2457,14 @@ stdIn.addEventListener("keydown", async (event) => {
         event.shiftKey &&
         event.key == "Enter"
     )
-        event.preventDefault();
+        event.preventDefault(); */
 
-    else if (allowMultiLines && event.shiftKey && event.key == "Enter")
-        stdIn.setAttribute("rows", (Number(stdIn.getAttribute("rows")) + 1).toString());
+    else if (session.allowMultiLines && event.shiftKey && event.key == "Enter")
+        stdInElement.rows++;
 
     else if (event.key == "Tab") {
+
+        if (session.reading) return;
 
         event.preventDefault();
 
@@ -1582,44 +2472,48 @@ stdIn.addEventListener("keydown", async (event) => {
 
         if (autoComp.textContent == "") {
 
-            if (autoCompListNow.length == 0) return;
+            if (session.autoCompListNow.length == 0) return;
 
-            if (autoCompListNow.length == 1) autoCompIndex = 0;
+            if (session.autoCompListNow.length == 1) session.autoCompIndex = 0;
 
             if (event.shiftKey) {
-                if (autoCompIndex === 0)
-                    autoCompIndex = autoCompListNow.length -1;
+                if (session.autoCompIndex === 0)
+                    session.autoCompIndex = session.autoCompListNow.length -1;
                 else
-                    autoCompIndex--;
+                    session.autoCompIndex--;
             } else {
-                if (autoCompIndex === autoCompListNow.length -1)
-                    autoCompIndex = 0;
+                if (session.autoCompIndex === session.autoCompListNow.length -1)
+                    session.autoCompIndex = 0;
                 else
-                    autoCompIndex++;
+                    session.autoCompIndex++;
             }
         }
 
-        if (!originalInput) {
-            originalInput = stdIn.value;
+        if (!session.originalInput) {
+            session.originalInput = stdInElement.value;
         }
-        stdIn.value = autoCompListNow[autoCompIndex];
+        stdInElement.value = session.autoCompListNow[session.autoCompIndex];
         autoComp.innerHTML = "";
     }
 
     else if (event.key == "Escape") {
 
-        if (autoCompListNow.length == 0) return;
+        if (session.reading) return;
 
-        if (originalInput) {
-            stdIn.value = originalInput;
-            originalInput = undefined;
+        if (session.autoCompListNow.length == 0) return;
+
+        if (session.originalInput) {
+            stdInElement.value = session.originalInput;
+            session.originalInput = undefined;
         }
 
-        autoCompIndex = 0;
+        session.autoCompIndex = 0;
         autoComp.innerHTML = "";
     }
 
     else if (event.key == "Backspace") {
+
+        if (session.reading) return;
 
         currentHistoryElement = history.length;
     }
@@ -1629,17 +2523,20 @@ stdIn.addEventListener("keydown", async (event) => {
         stdout.clear();
 
         if (event.key == "L") {
-            history = [];
-            currentHistoryElement = 0;
-
-            // if rememberHistory option is enabled
-            if (localStorage.history)
-            localStorage.removeItem("history");
+            clearHistory();
         }
     }
 
 });
 
-stdIn.addEventListener("input", autoComplete);
+stdInElement.addEventListener("input", autoComplete);
+
+// for multi line inputs
+stdInElement.addEventListener("input", function () {
+    if (!session.allowMultiLines) return;
+    const rows = stdInElement.value.split("\n").length;
+    if (rows !== stdInElement.rows)
+        stdInElement.rows = rows;
+});
 
 /* input button events */

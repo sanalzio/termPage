@@ -1,0 +1,4 @@
+#main *::selection {
+    background-color: var(--fg);
+    color: var(--bg);
+}

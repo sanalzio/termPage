@@ -92,10 +92,10 @@ commands["checkForUpdates"] = {
 
         return 0;
     },
-    about: `Checks for updates. %ALIASES%\nFlags: --jsconsole: If no updates are found, prints the message to the JavaScript console.`
+    about: `Checks for updates. %ALIASES%\nFlags: --jsconsole: If no updates are found, prints the message to JavaScript console.`
 };
 
 aliases["cfu"] = "checkForUpdates";
 
-autoCompList.push("checkForUpdates");
-autoCompList.push("cfu");
+session.autoCompList.push("checkForUpdates");
+session.autoCompList.push("cfu");
